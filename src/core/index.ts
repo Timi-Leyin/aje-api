@@ -40,3 +40,11 @@ export const AccountNotFound = (res: Response) => {
     })
   );
 };
+
+export const useProviderForAuth = (res: Response, provider: string) => {
+  return res.status(400).json(
+    responseObject({
+      message: `Sign in with ${provider}`,
+    })
+  );
+};
