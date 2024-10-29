@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum CURRENCY {
+  NGN
+  USD
+}
+
+enum GENDER {
+  MALE
+  FEMALE
+  OTHERS
+}
+
+enum USER_TYPE {
+  ADMIN
+  USER
+}
+
+enum AUTH_PROVIDER {
+  GOOGLE
+  EMAIL
+}
+
+enum PROVIDER {
+  CLOUDINARY
+  SELF_HOSTED
+}
+
+enum FILE_TYPE {
+  IMAGE
+  VIDEO
+  OTHERS
+  DOCUMENT
+}
+
+model otp {
+  id        Int      @unique @default(autoincrement())
+  uuid      String   @id @unique @default(cuid())
+  code      String
+  email     String
+  expiresIn String   @default("5m") // m for mins, s for seconds
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model user {
+  uuid         String        @id @unique @default(cuid())
+  email        String        @unique
+  firstName    String
+  lastName     String
+  phone        String?
+  bio          String?
+  gender       GENDER?
+  type         USER_TYPE     @default(USER)
+  root         Boolean       @default(false)
+  authProvider AUTH_PROVIDER
+
+  fileId String?
+  file   file?   @relation(fields: [fileId], references: [uuid])
+
+  // password
+  password password? @relation(fields: [keyId], references: [uuid])
+  keyId    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model file {
+  id   Int    @unique @default(autoincrement())
+  uuid String @id @unique @default(cuid())
+  src  String
+
+  type     FILE_TYPE @default(OTHERS)
+  provider PROVIDER  @default(SELF_HOSTED)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user user[]
+}
+
+model password {
+  id   Int    @unique @default(autoincrement())
+  uuid String @id @unique @default(cuid())
+
+  content String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user user[]
+}
