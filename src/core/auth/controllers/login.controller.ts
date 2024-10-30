@@ -3,15 +3,15 @@ import errorHandler from "../../../helpers/error-handler";
 import responseObject from "../../../helpers/response-object";
 import { generateToken } from "../../../helpers/token";
 import { LoginDTO } from "../auth.dto";
-import { checkUserEmail } from "../../users/users.service";
 import { AccountNotFound, useProviderForAuth } from "../..";
 import { comaparePassword } from "../../../helpers/password";
+import { userService } from "../../users/users.service";
 
 export default async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body as LoginDTO;
     // check user
-    const user = await checkUserEmail(email, { password: true });
+    const user = await userService.checkUserEmail(email, { password: true });
 
     if (!user) {
       return AccountNotFound(res);

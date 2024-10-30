@@ -5,14 +5,14 @@ import responseObject from "../../../helpers/response-object";
 import { generateToken } from "../../../helpers/token";
 import { RegisterDTO } from "../auth.dto";
 import { AccountAlreadyExist } from "../..";
-import { checkUserEmail, createUser } from "../../users/users.service";
 import { hashPassword } from "../../../helpers/password";
 import { AUTH_PROVIDER } from "@prisma/client";
+import { userService } from "../../users/users.service";
 export default async (req: Request, res: Response) => {
   try {
     const { firstName, lastName, email, password } = req.body as RegisterDTO;
     // check if user with email exists
-    const userExists = await checkUserEmail(email, {});
+    const userExists = await userService.checkUserEmail(email, {});
 
     // user exists
     if (userExists) {
@@ -20,7 +20,7 @@ export default async (req: Request, res: Response) => {
     }
 
     const hashed = await hashPassword(password);
-    const user = await createUser({
+    const user = await userService.createUser({
       email,
       firstName,
       lastName,

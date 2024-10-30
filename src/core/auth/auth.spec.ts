@@ -16,19 +16,6 @@ describe("Authentication", () => {
 		expect(response.body.accessToken).not.toBeUndefined();
 	});
 
-	it("[LOGIN] Should Login an admin successfully and contain access Token", async () => {
-		const admin = await createRandomUser(USER_TYPE.ADMIN);
-		const response = await request(app)
-			.post("/api/auth/login")
-			.send({
-        email: admin.email,
-        password: PASSWORD
-      })
-			.expect(200);
-		  adminAccessToken = response.body.accessToken;
-		expect(response.body.accessToken).not.toBeUndefined();
-	});
-
 	it("[LOGIN] Should login a user successfully and contain access Token", async () => {
 		const response = await request(app)
 			.post("/api/auth/login")

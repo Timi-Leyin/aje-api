@@ -23,6 +23,7 @@ authRoute.post(
 );
 
 authRoute.post(ROUTES.LOGIN, loginSchema, bodyValidation, loginController);
+
 authRoute.post(
   ROUTES.FORGOTTEN_PASSWORD,
   forgottenPasswordSchema,

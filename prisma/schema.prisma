@@ -45,7 +45,7 @@ model otp {
   uuid      String   @id @unique @default(cuid())
   code      String
   email     String
-  expiresIn String   @default("5m") // m for mins, s for seconds
+  expiresIn String   @default("5m") // m for mins, h for hours
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
