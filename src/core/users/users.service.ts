@@ -1,4 +1,4 @@
-import { AUTH_PROVIDER, Prisma } from "@prisma/client";
+import { AUTH_PROVIDER, GENDER, Prisma } from "@prisma/client";
 import { db } from "../../config/database";
 import otpGenerator from "otp-generator";
 import logger from "../../helpers/logger";
@@ -13,6 +13,22 @@ const checkUserEmail = async (email: string, include: Prisma.userInclude) => {
   });
 
   return user;
+};
+
+interface UpdateUser {
+  firstName?: string;
+  lastName?: string;
+  bio?: string;
+  phone?: string;
+  gender?: GENDER;
+}
+const updateUser = async (email: string, data: UpdateUser) => {
+  return db.user.update({
+    where: {
+      email,
+    },
+    data,
+  });
 };
 
 const createUser = async (user: Prisma.userCreateInput) => {
@@ -132,6 +148,7 @@ export const userService = {
   checkUserEmail,
   createUser,
   updatePassword,
+  updateUser,
   // otp
   generateOtp,
   compareOtp,
