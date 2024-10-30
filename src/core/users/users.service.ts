@@ -78,11 +78,18 @@ const compareOtp = async (otp: string, email: string) => {
     existingOtp.expiresIn,
     existingOtp.createdAt
   );
-  logger(isExpired);
   if (isExpired) {
     return false;
   }
   const compare = await comaparePassword(otp, existingOtp?.code || "");
+
+  if (compare) {
+    await db.otp.delete({
+      where: {
+        uuid: existingOtp.uuid,
+      },
+    });
+  }
   return compare;
 };
 
@@ -95,13 +102,22 @@ const generateOtp = async (email: string) => {
       existingOtp.createdAt
     );
     logger(isExpired);
+    if (isExpired) {
+      await db.otp.delete({
+        where: {
+          uuid: existingOtp.uuid,
+        },
+      });
+
+      return false;
+    }
     return isExpired;
   }
 
   const otp = otpGenerator.generate(6);
   logger("[CODE]", otp);
   const code = await hashPassword(otp);
-  const newOTP = db.otp.create({
+  const newOTP = await db.otp.create({
     data: {
       code,
       email,

@@ -18,7 +18,7 @@ export default async (req: Request, res: Response) => {
     if (!createdOTP) {
       return res
         .status(400)
-        .json(responseObject({ message: "OTP already send, Try again later" }));
+        .json(responseObject({ message: "OTP already sent, Try again later" }));
     }
 
     return res
