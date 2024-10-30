@@ -31,6 +31,7 @@ enum AUTH_PROVIDER {
 enum PROVIDER {
   CLOUDINARY
   SELF_HOSTED
+  GOOGLE
 }
 
 enum FILE_TYPE {
@@ -53,8 +54,8 @@ model otp {
 model user {
   uuid         String        @id @unique @default(cuid())
   email        String        @unique
-  firstName    String
-  lastName     String
+  firstName    String?
+  lastName     String?
   phone        String?
   bio          String?
   gender       GENDER?
@@ -63,7 +64,7 @@ model user {
   authProvider AUTH_PROVIDER
 
   fileId String?
-  file   file?   @relation(fields: [fileId], references: [uuid])
+  avatar file?   @relation(fields: [fileId], references: [uuid])
 
   // password
   password password? @relation(fields: [keyId], references: [uuid])
@@ -78,6 +79,7 @@ model file {
   uuid String @id @unique @default(cuid())
   src  String
 
+  file_id  String?
   type     FILE_TYPE @default(OTHERS)
   provider PROVIDER  @default(SELF_HOSTED)
 

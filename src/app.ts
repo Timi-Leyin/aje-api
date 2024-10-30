@@ -7,9 +7,28 @@ import { corsOptions } from "./config/cors";
 import { ROUTES } from "./constants/routes";
 import authRoute from "./core/auth/auth.route";
 import { CWD } from "./constants";
+import session from "express-session";
 import path from "path";
+import "./config/passport";
 import { engine } from "express-handlebars";
+import { ENV } from "./constants/env";
+
+import passport from 'passport';
+
+
 app.use(cors(corsOptions));
+
+app.use(
+  session({
+    secret: ENV.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(morgan("dev"));

@@ -3,3 +3,6 @@ import path from "path"
 export const CWD = process.cwd()
 
 export const TEMP_DIR = path.join(CWD, "temp")
+
+export const FRONTEND_SUCCESS_REDIRECT = '/api/auth/google/callback/success'
+export const FRONTEND_FAILURE_REDIRECT = '/api/auth/google/callback/failure'

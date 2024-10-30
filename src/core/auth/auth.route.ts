@@ -11,8 +11,31 @@ import bodyValidation from "../../middlewares/body-validation";
 import loginController from "./controllers/login.controller";
 import forgottenPasswordController from "./controllers/forgotten-password.controller";
 import verifyOtpController from "./controllers/verify-otp.controller";
+import passport from "passport";
+import {
+  FRONTEND_FAILURE_REDIRECT,
+  FRONTEND_SUCCESS_REDIRECT,
+} from "../../constants";
+import googleSuccessController from "./controllers/google-success.controller";
+import googleFailureController from "./controllers/google-failure.controller";
 
 const authRoute = Router();
+
+authRoute.get(
+  ROUTES.GOOGLE_AUTH,
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+authRoute.get(
+  ROUTES.GOOGLE_AUTH_CALLBACK,
+  passport.authenticate("google", {
+    successRedirect: FRONTEND_SUCCESS_REDIRECT,
+    failureRedirect: FRONTEND_FAILURE_REDIRECT,
+  })
+);
+
+authRoute.get(ROUTES.GOOGLE_AUTH_CALLBACK_SUCCESS, googleSuccessController);
+authRoute.get(ROUTES.GOOGLE_AUTH_CALLBACK_FAILURE, googleFailureController);
 
 // registration
 authRoute.post(
