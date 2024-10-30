@@ -13,8 +13,9 @@ import "./config/passport";
 import { engine } from "express-handlebars";
 import { ENV } from "./constants/env";
 
-import passport from 'passport';
-
+import passport from "passport";
+import usersRoute from "./core/users/users.route";
+import authGuard from "./middlewares/auth-guard";
 
 app.use(cors(corsOptions));
 
@@ -41,6 +42,7 @@ app.set("views", path.join(CWD, "templates", "pages"));
 const apiRoutes = Router();
 
 apiRoutes.use(ROUTES.SUBROUTES.AUTH, authRoute);
+apiRoutes.use(ROUTES.SUBROUTES.PROFILE, authGuard, usersRoute);
 
 // DO NOT TOUCH >>>>>>>>
 app.get(ROUTES.BASE, defaultMiddleware);
