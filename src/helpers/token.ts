@@ -21,6 +21,9 @@ export const decodeToken = async (token: string): Promise<Decoded> => {
     const decoded = jwt.verify(token, ENV.JWT_SECRET) as Payload;
     const user = await db.user.findUnique({
       where: { uuid: decoded.id },
+      include: {
+        avatar: true,
+      },
     });
     return {
       user,
