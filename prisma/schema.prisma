@@ -34,11 +34,27 @@ enum PROVIDER {
   GOOGLE
 }
 
+enum LISTING_TYPE {
+  RENT
+  SALE
+}
+
 enum FILE_TYPE {
   IMAGE
   VIDEO
   OTHERS
   DOCUMENT
+}
+
+enum PROPERTY_STATUS {
+  AVAILABLE
+  SOLD
+}
+
+enum FURNISHING {
+  SEMI_FURNISHED
+  FURNISHED
+  UNFURNISHED
 }
 
 model otp {
@@ -63,15 +79,17 @@ model user {
   root         Boolean       @default(false)
   authProvider AUTH_PROVIDER
 
-  fileId String?
-  avatar file?   @relation(fields: [fileId], references: [uuid])
+  isAgent Boolean @default(false)
+  fileId  String?
+  avatar  file?   @relation(fields: [fileId], references: [uuid])
 
   // password
   password password? @relation(fields: [keyId], references: [uuid])
   keyId    String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  property  property[]
 }
 
 model file {
@@ -86,7 +104,10 @@ model file {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user user[]
+  user          user[]
+  property      property?  @relation(fields: [propertyId], references: [uuid])
+  propertyId    String?
+  propertyVideo property[] @relation("videoTour")
 }
 
 model password {
@@ -99,4 +120,90 @@ model password {
   updatedAt DateTime @updatedAt
 
   user user[]
+}
+
+model propertyType {
+  id   Int    @unique @default(autoincrement())
+  uuid String @id @unique @default(cuid())
+
+  name String
+
+  property   property? @relation(fields: [propertyId], references: [uuid])
+  propertyId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model address {
+  id   Int    @unique @default(autoincrement())
+  uuid String @id @unique @default(cuid())
+
+  longitude Float?
+  latitude  Float?
+
+  address String
+  city    String?
+  state   String?
+  zipCode String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model specifications {
+  id   Int    @unique @default(autoincrement())
+  uuid String @id @unique @default(cuid())
+
+  bedrooms   Int
+  bathrooms  Int
+  squareFeet String
+  lotSize    String?
+  yearBuilt  DateTime? // year it was built
+  furnishing FURNISHING @default(UNFURNISHED)
+
+  parkingSpaces Int     @default(0)
+  gym           Boolean @default(false)
+  garden        Boolean @default(false)
+
+  pool Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model tag {
+  id         Int       @unique @default(autoincrement())
+  uuid       String    @id @unique @default(cuid())
+  name       String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  property   property? @relation(fields: [propertyId], references: [uuid])
+  propertyId String?
+}
+
+model property {
+  id    Int    @unique @default(autoincrement())
+  uuid  String @id @unique @default(cuid())
+  agent user   @relation(fields: [userId], references: [uuid])
+
+  hasLegalDocuments Boolean @default(false)
+  images            file[]
+  videoTour         file?   @relation("videoTour", fields: [tourFileId], references: [uuid])
+  title             String
+
+  views Int   @default(0)
+  tags  tag[]
+
+  description String? @db.LongText
+
+  propertyType propertyType[] // commercial,  appartment,  etc
+
+  listingType LISTING_TYPE
+  status      PROPERTY_STATUS @default(AVAILABLE)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  tourFileId String?
+  userId     String
 }

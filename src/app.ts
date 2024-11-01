@@ -16,6 +16,7 @@ import { ENV } from "./constants/env";
 import passport from "passport";
 import usersRoute from "./core/users/users.route";
 import authGuard from "./middlewares/auth-guard";
+import propertyRoutes from "./core/property/property.routes";
 
 app.use(cors(corsOptions));
 
@@ -43,6 +44,7 @@ const apiRoutes = Router();
 
 apiRoutes.use(ROUTES.SUBROUTES.AUTH, authRoute);
 apiRoutes.use(ROUTES.SUBROUTES.PROFILE, authGuard, usersRoute);
+apiRoutes.use(ROUTES.SUBROUTES.PROPERTY, authGuard, propertyRoutes);
 
 // DO NOT TOUCH >>>>>>>>
 app.get(ROUTES.BASE, defaultMiddleware);
