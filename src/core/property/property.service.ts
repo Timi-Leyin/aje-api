@@ -28,7 +28,10 @@ const getProperties = async ({ limit, offset, page }: getPropertiesParams) => {
     data: properties,
   };
 };
-type FilteredSpecifications = Omit<specifications, 'id'|'createdAt' | 'updatedAt' | 'uuid'>;
+type FilteredSpecifications = Omit<
+  specifications,
+  "id" | "createdAt" | "updatedAt" | "uuid"
+>;
 
 interface createPropertyParams {
   title: string;
@@ -83,9 +86,26 @@ const createProperties = async ({
   return property;
 };
 
+const getProperty = async ({ uuid }: { uuid: string }) => {
+  const property = await db.property.findUnique({
+    where: {
+      uuid: uuid,
+    },
+    include: {
+      images: true,
+      specifications: true,
+      tags: true,
+      videoTour: true,
+      propertyType: true,
+    },
+  });
+  return property;
+};
+
 const propertyService = {
   getProperties,
   createProperties,
+  getProperty
 };
 
 export default propertyService;
