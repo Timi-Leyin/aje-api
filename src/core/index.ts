@@ -1,5 +1,6 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import responseObject from "../helpers/response-object";
+import logger from "../helpers/logger";
 
 export const defaultMiddleware = (req: Request, res: Response) => {
   return res.status(200).json(
@@ -17,10 +18,16 @@ export const notFoundMiddleware = (req: Request, res: Response) => {
   );
 };
 
-export const errorMiddleware = (req: Request, res: Response) => {
+export const errorMiddleware = (
+  err: any,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const message = err  && err.message || "An  Error Occurred";
   return res.status(500).json(
     responseObject({
-      message: "An Error Occurred",
+      message,
     })
   );
 };

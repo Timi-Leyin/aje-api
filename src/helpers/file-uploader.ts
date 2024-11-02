@@ -2,15 +2,35 @@ import { FILE_TYPE } from "@prisma/client";
 import cloudinary from "../config/cloudinary";
 import { db } from "../config/database";
 import { rmSync } from "fs";
+import { UPLOAD_LOCAL } from "../constants";
 
 interface Uploader {
   src: string;
   identifier?: string;
 }
 
-const fileUploader = async ({ src, identifier }: Uploader) => {
-  // Upload an image
+const fileUploaderLocal = async ({ src, identifier }: Uploader) => {
   try {
+    const file = await db.file.create({
+      data: {
+        src: src,
+        provider: "SELF_HOSTED",
+        type: "OTHERS",
+      },
+    });
+    return file;
+  } catch (error) {
+    return null;
+  }
+};
+
+const fileUploader = async ({ src, identifier }: Uploader) => {
+  try {
+    if (UPLOAD_LOCAL) {
+      const upload = await fileUploaderLocal({ src, identifier });
+      return upload;
+    }
+
     const uploadResult = await cloudinary.uploader.upload(src, {
       public_id: identifier,
     });
@@ -26,10 +46,9 @@ const fileUploader = async ({ src, identifier }: Uploader) => {
     });
     return file;
   } catch (error) {
-    console.log(error);
     return null;
   } finally {
-    rmSync(src);
+    !UPLOAD_LOCAL && rmSync(src);
   }
 };
 

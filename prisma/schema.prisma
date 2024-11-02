@@ -186,6 +186,7 @@ model property {
   id    Int    @unique @default(autoincrement())
   uuid  String @id @unique @default(cuid())
   agent user   @relation(fields: [userId], references: [uuid])
+  price Decimal
 
   hasLegalDocuments Boolean @default(false)
   images            file[]
