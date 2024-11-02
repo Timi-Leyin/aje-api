@@ -18,6 +18,9 @@ import usersRoute from "./core/users/users.route";
 import authGuard from "./middlewares/auth-guard";
 import propertyRoutes from "./core/property/property.routes";
 
+// import { multipleProperty } from "./helpers/random-data";
+// multipleProperty()
+
 app.use(cors(corsOptions));
 
 app.use(
@@ -41,6 +44,7 @@ app.set("views", path.join(CWD, "templates", "pages"));
 
 // ATTACH OTHER ROUTES TO APIROUTES
 const apiRoutes = Router();
+
 
 apiRoutes.use(ROUTES.SUBROUTES.AUTH, authRoute);
 apiRoutes.use(ROUTES.SUBROUTES.PROFILE, authGuard, usersRoute);
