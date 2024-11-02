@@ -54,7 +54,7 @@ export default async (req: Request, res: Response) => {
       id: userDB.uuid,
     });
 
-    const url = `${ENV.FRONTEND_URL}?code=${token}`;
+    const url = `${ENV.FRONTEND_URL}/auth/login?code=${token}`;
     return res.redirect(url);
   } catch (error) {
     return errorHandler(res, error);
