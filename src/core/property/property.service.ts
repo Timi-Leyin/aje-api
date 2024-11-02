@@ -1,4 +1,4 @@
-import { file, LISTING_TYPE } from "@prisma/client";
+import { file, LISTING_TYPE, specifications } from "@prisma/client";
 import { db } from "../../config/database";
 import logger from "../../helpers/logger";
 
@@ -20,15 +20,15 @@ const getProperties = async ({ limit, offset, page }: getPropertiesParams) => {
 
   return {
     meta: {
-      total: all,
+      totalItems: all,
       totalPages: Math.ceil(all / limit),
       limit,
       currentPage: page,
-      offset,
     },
     data: properties,
   };
 };
+type FilteredSpecifications = Omit<specifications, 'id'|'createdAt' | 'updatedAt' | 'uuid'>;
 
 interface createPropertyParams {
   title: string;
@@ -38,6 +38,7 @@ interface createPropertyParams {
   tags: string;
   images: file[];
   price: string | number;
+  specifications?: FilteredSpecifications;
 }
 const createProperties = async ({
   title,
@@ -47,6 +48,7 @@ const createProperties = async ({
   images,
   tags,
   price,
+  specifications,
 }: createPropertyParams) => {
   const tagsArray = (tags || "")
     .trim()
@@ -54,13 +56,19 @@ const createProperties = async ({
     .filter((tag) => tag != "")
     .map((tag) => tag.toLowerCase().trim());
 
-
   const property = await db.property.create({
     data: {
       title,
       description,
       listingType: "RENT",
       price,
+      specifications: specifications
+        ? {
+            create: {
+              ...specifications,
+            },
+          }
+        : undefined,
       images: {
         connect: images,
       },
