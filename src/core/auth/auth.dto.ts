@@ -6,6 +6,9 @@ export interface LoginDTO {
 export interface RegisterDTO extends LoginDTO {
   firstName: string;
   lastName: string;
+  businessAddress?: string;
+  businessName?: string;
+  userType: "Users" | "Agent/Property Owner" | "Artisan" | "Vendor";
 }
 
 export type ForgotPasswordDTO = Omit<LoginDTO, "password">;
