@@ -23,6 +23,11 @@ export const decodeToken = async (token: string): Promise<Decoded> => {
       where: { uuid: decoded.id },
       include: {
         avatar: true,
+        business:{
+          include:{
+            address:true
+          }
+        }
       },
     });
     return {
