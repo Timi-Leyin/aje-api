@@ -20,7 +20,10 @@ enum GENDER {
 
 enum USER_TYPE {
   ADMIN
-  USER
+  AGENT // agent/property owners
+  ARTISAN
+  VENDOR
+  BUYER // same as user
 }
 
 enum AUTH_PROVIDER {
@@ -67,6 +70,19 @@ model otp {
   updatedAt DateTime @updatedAt
 }
 
+model businessInfo {
+  uuid String @id @unique @default(cuid())
+
+  name      String
+  address   address  @relation(fields: [addressId], references: [uuid])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  addressId String
+  user      user[]
+  cac       file?     @relation(fields: [fileId], references: [uuid])
+  fileId    String?
+}
+
 model user {
   uuid         String        @id @unique @default(cuid())
   email        String        @unique
@@ -74,22 +90,26 @@ model user {
   lastName     String?
   phone        String?
   bio          String?
+  business     businessInfo? @relation(fields: [businessInfoId], references: [uuid])
   gender       GENDER?
-  type         USER_TYPE     @default(USER)
+  type         USER_TYPE     @default(BUYER)
   root         Boolean       @default(false)
   authProvider AUTH_PROVIDER
 
-  isAgent Boolean @default(false)
-  fileId  String?
-  avatar  file?   @relation(fields: [fileId], references: [uuid])
+  verified   Boolean @default(false)
+  fileId     String?
+  govtFileId String?
+  avatar     file?   @relation("profilePhoto", fields: [fileId], references: [uuid])
+  govtId     file?   @relation("govtId", fields: [govtFileId], references: [uuid])
 
   // password
   password password? @relation(fields: [keyId], references: [uuid])
   keyId    String?
 
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  property  property[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  property       property[]
+  businessInfoId String?
 }
 
 model file {
@@ -104,10 +124,12 @@ model file {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user          user[]
-  property      property?  @relation(fields: [propertyId], references: [uuid])
+  user          user[]         @relation("profilePhoto")
+  govtIdUsers   user[]         @relation("govtId")
+  property      property?      @relation(fields: [propertyId], references: [uuid])
   propertyId    String?
-  propertyVideo property[] @relation("videoTour")
+  propertyVideo property[]     @relation("videoTour")
+  businessInfo  businessInfo[]
 }
 
 model password {
@@ -147,8 +169,9 @@ model address {
   state   String?
   zipCode String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  businessInfo businessInfo[]
 }
 
 model specifications {
@@ -206,9 +229,9 @@ model property {
   listingType LISTING_TYPE
   status      PROPERTY_STATUS @default(AVAILABLE)
 
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  tourFileId         String?
-  userId             String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  tourFileId       String?
+  userId           String
   specificationsId String?
 }
