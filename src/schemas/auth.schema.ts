@@ -18,11 +18,21 @@ export const registerSchema = [
     .withMessage("First Name is Required")
     .isLength({ min: 3 })
     .withMessage("Last Name must be at least 3 characters"),
+  body("userType")
+    .trim()
+    .isString()
+    .withMessage("User type is Required")
+    .isLength({ min: 4 })
+    .withMessage("Invalid user type"),
   body("password")
     .trim()
-    .isStrongPassword()
+    .isLength({
+      min: 6,
+    })
+    // .isStrongPassword()
     .withMessage(
-      "Passwords must be a minimum of 8 characters. Include one letter (Uppercase and Lowercase), and one number or symbol."
+      // "Passwords must be a minimum of 8 characters. Include one letter (Uppercase and Lowercase), and one number or symbol."
+      "Passwords must be a minimum of 6 characters."
     ),
 ];
 

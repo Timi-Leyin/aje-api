@@ -8,11 +8,12 @@ declare module "express-serve-static-core" {
 
     files: {
       thumbnail?: Express.Multer.File[];
+      profilePhoto?: Express.Multer.File[];
+      govtId?: Express.Multer.File[];
+      cacDoc?: Express.Multer.File[];
       images?: Express.Multer.File[];
     };
   }
 }
 
 export interface GlobalUser {}
-
-
