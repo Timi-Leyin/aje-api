@@ -17,6 +17,7 @@ import passport from "passport";
 import usersRoute from "./core/users/users.route";
 import authGuard from "./middlewares/auth-guard";
 import propertyRoutes from "./core/property/property.routes";
+import testsRoute from "./core/testing-api/testing-api.routes";
 
 // import { multipleProperty } from "./helpers/random-data";
 // multipleProperty()
@@ -45,11 +46,11 @@ app.set("views", path.join(CWD, "templates", "pages"));
 // ATTACH OTHER ROUTES TO APIROUTES
 const apiRoutes = Router();
 
-
 apiRoutes.use(ROUTES.SUBROUTES.AUTH, authRoute);
 apiRoutes.use(ROUTES.SUBROUTES.PROFILE, authGuard, usersRoute);
 apiRoutes.use(ROUTES.SUBROUTES.PROPERTY, authGuard, propertyRoutes);
 
+apiRoutes.use("/test", testsRoute);
 // DO NOT TOUCH >>>>>>>>
 app.get(ROUTES.BASE, defaultMiddleware);
 app.use(ROUTES.BASE, apiRoutes);
