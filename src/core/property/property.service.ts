@@ -95,6 +95,22 @@ const getProperty = async ({ uuid }: { uuid: string }) => {
       images: true,
       specifications: true,
       tags: true,
+      agent:{
+        select:{
+          email:true,
+          bio:true,
+          firstName:true,
+          lastName:true,
+          root:true,
+          phone:true,
+          avatar:{
+            select:{
+               src:true,
+               provider:true,
+            }
+          },
+        }
+      },
       videoTour: true,
       propertyType: true,
     },
