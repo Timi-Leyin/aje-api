@@ -18,6 +18,7 @@ import {
 } from "../../constants";
 import googleSuccessController from "./controllers/google-success.controller";
 import googleFailureController from "./controllers/google-failure.controller";
+import { multerUpload } from "../../config/multer";
 
 const authRoute = Router();
 
@@ -37,9 +38,15 @@ authRoute.get(
 authRoute.get(ROUTES.GOOGLE_AUTH_CALLBACK_SUCCESS, googleSuccessController);
 authRoute.get(ROUTES.GOOGLE_AUTH_CALLBACK_FAILURE, googleFailureController);
 
+const registerationUpload = multerUpload.fields([
+  { name: "govtId", maxCount: 1 },
+  { name: "cacDoc", maxCount: 1 },
+  { name: "profilePhoto", maxCount: 1 },
+]);
 // registration
 authRoute.post(
   ROUTES.REGISTER,
+  registerationUpload,
   registerSchema,
   bodyValidation,
   registerController
