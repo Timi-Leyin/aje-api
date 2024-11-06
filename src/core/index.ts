@@ -25,6 +25,7 @@ export const errorMiddleware = (
   next: NextFunction
 ) => {
   const message = err  && err.message || "An  Error Occurred";
+  logger(message)
   return res.status(500).json(
     responseObject({
       message,
