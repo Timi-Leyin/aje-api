@@ -1,4 +1,4 @@
-import { file, LISTING_TYPE, specifications, tag as Tag } from "@prisma/client";
+import { file, LISTING_TYPE, PRODUCT_TYPE, specifications, tag as Tag } from "@prisma/client";
 import { db } from "../../config/database";
 import logger from "../../helpers/logger";
 
@@ -40,6 +40,7 @@ interface createPropertyParams {
   userId: string;
   tags: string;
   images: file[];
+  type?:PRODUCT_TYPE,
   price: string | number;
   specifications?: FilteredSpecifications;
 }
@@ -76,6 +77,7 @@ const createProperties = async ({
   images,
   tags,
   price,
+  type,
   specifications,
 }: createPropertyParams) => {
   const tagsArray = (tags || "")
@@ -89,6 +91,7 @@ const createProperties = async ({
     data: {
       title,
       description,
+      type,
       listingType: listingType.toUpperCase() as LISTING_TYPE,
       price,
       tags: {

@@ -8,7 +8,7 @@ import { createPropertyDTO } from "../property.dto";
 
 export default async (req: Request, res: Response) => {
   try {
-    const { description, title, tags, price, listingType } =
+    const { description, title, tags, price, listingType, type } =
       req.body as createPropertyDTO;
 
     // @ts-ignore
@@ -32,10 +32,11 @@ export default async (req: Request, res: Response) => {
       );
     }
 
-    
+    // @ts-ignore
+    const userType = req.user.type;
     // @ts-ignore
     const images = req.files && (req.files.images || []);
-    
+
     const uploadImages = await bulkFileUploader(
       images.map((img) => ({ src: img.path, identifier: img.originalname }))
     );
@@ -55,6 +56,7 @@ export default async (req: Request, res: Response) => {
       title,
       listingType,
       price,
+      type: userType == "AGENT" ? "PROPERTY" : "SERVICES",
       images: uploadImages,
       tags,
     });
