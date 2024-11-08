@@ -1,4 +1,4 @@
-import { file, LISTING_TYPE, specifications } from "@prisma/client";
+import { file, LISTING_TYPE, specifications, tag as Tag } from "@prisma/client";
 import { db } from "../../config/database";
 import logger from "../../helpers/logger";
 
@@ -43,6 +43,31 @@ interface createPropertyParams {
   price: string | number;
   specifications?: FilteredSpecifications;
 }
+
+const createTags = async (tags: string[]) => {
+  const allTags: Tag[] = [];
+  for (const tag of tags) {
+    const exists = await db.tag.findFirst({
+      where: {
+        name: tag,
+      },
+    });
+
+    if (exists) {
+      allTags.push(exists);
+    } else {
+      const newTag = await db.tag.create({
+        data: {
+          name: tag,
+        },
+      });
+      allTags.push(newTag);
+    }
+  }
+
+  return allTags;
+};
+
 const createProperties = async ({
   title,
   description,
@@ -59,12 +84,16 @@ const createProperties = async ({
     .filter((tag) => tag != "")
     .map((tag) => tag.toLowerCase().trim());
 
+  const allTags = await createTags(tagsArray);
   const property = await db.property.create({
     data: {
       title,
       description,
-      listingType: "RENT",
+      listingType: listingType.toUpperCase() as LISTING_TYPE,
       price,
+      tags: {
+        connect: allTags,
+      },
       specifications: specifications
         ? {
             create: {
@@ -95,21 +124,21 @@ const getProperty = async ({ uuid }: { uuid: string }) => {
       images: true,
       specifications: true,
       tags: true,
-      agent:{
-        select:{
-          email:true,
-          bio:true,
-          firstName:true,
-          lastName:true,
-          root:true,
-          phone:true,
-          avatar:{
-            select:{
-               src:true,
-               provider:true,
-            }
+      agent: {
+        select: {
+          email: true,
+          bio: true,
+          firstName: true,
+          lastName: true,
+          root: true,
+          phone: true,
+          avatar: {
+            select: {
+              src: true,
+              provider: true,
+            },
           },
-        }
+        },
       },
       videoTour: true,
       propertyType: true,
@@ -121,7 +150,7 @@ const getProperty = async ({ uuid }: { uuid: string }) => {
 const propertyService = {
   getProperties,
   createProperties,
-  getProperty
+  getProperty,
 };
 
 export default propertyService;
