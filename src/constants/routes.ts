@@ -15,6 +15,7 @@ export const ROUTES = {
     ARTWORK: "/artwork",
     SALES:"/sales"
   },
+  MY_PROPERTY: "/my-property",
 
   // AUTH
   LOGIN: "/login",

@@ -1,4 +1,10 @@
-import { file, LISTING_TYPE, PRODUCT_TYPE, specifications, tag as Tag } from "@prisma/client";
+import {
+  file,
+  LISTING_TYPE,
+  PRODUCT_TYPE,
+  specifications,
+  tag as Tag,
+} from "@prisma/client";
 import { db } from "../../config/database";
 import logger from "../../helpers/logger";
 
@@ -6,11 +12,27 @@ interface getPropertiesParams {
   limit: number;
   offset: number;
   page: number;
+
+  where?: {
+    agentId?: string;
+  };
 }
-const getProperties = async ({ limit, offset, page }: getPropertiesParams) => {
-  const all = await db.property.count();
+const getProperties = async ({
+  limit,
+  offset,
+  page,
+  where,
+}: getPropertiesParams) => {
+  const all = await db.property.count({
+    where: {
+      userId: where && where.agentId,
+    },
+  });
 
   const properties = await db.property.findMany({
+    where: {
+      userId: where && where.agentId,
+    },
     skip: offset,
     take: limit,
     include: {
@@ -40,7 +62,7 @@ interface createPropertyParams {
   userId: string;
   tags: string;
   images: file[];
-  type?:PRODUCT_TYPE,
+  type?: PRODUCT_TYPE;
   price: string | number;
   specifications?: FilteredSpecifications;
 }
@@ -131,6 +153,7 @@ const getProperty = async ({ uuid }: { uuid: string }) => {
         select: {
           email: true,
           bio: true,
+          type:true,
           firstName: true,
           lastName: true,
           root: true,
