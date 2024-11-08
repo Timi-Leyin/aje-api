@@ -6,6 +6,7 @@ import newPropertyController from "./controllers/new-property.controller";
 import { newPropertySchema } from "../../schemas/properties.schema";
 import bodyValidation from "../../middlewares/body-validation";
 import propertyContoller from "./controllers/property.contoller";
+import checkSuscription from "../../middlewares/check-suscription";
 
 const propertyRoutes = Router();
 
@@ -15,6 +16,7 @@ propertyRoutes.get(ROUTES.INDEX, propertiesController);
 propertyRoutes.get(ROUTES.INDEX_ID, propertyContoller);
 propertyRoutes.post(
   ROUTES.INDEX,
+  checkSuscription,
   //   @ts-ignore
   upload,
   newPropertySchema,

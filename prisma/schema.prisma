@@ -60,6 +60,16 @@ enum FURNISHING {
   UNFURNISHED
 }
 
+enum SUBSCRIPTION_MODEL {
+  FREE
+}
+
+enum DURATION {
+  MONTHLY
+  YEARLY
+  ONE_OFF
+}
+
 model otp {
   id        Int      @unique @default(autoincrement())
   uuid      String   @id @unique @default(cuid())
@@ -79,8 +89,18 @@ model businessInfo {
   updatedAt DateTime @updatedAt
   addressId String
   user      user[]
-  cac       file?     @relation(fields: [fileId], references: [uuid])
+  cac       file?    @relation(fields: [fileId], references: [uuid])
   fileId    String?
+}
+
+model restriction {
+  uuid String @id @unique @default(cuid())
+
+  restricted Boolean  @default(false)
+  reason     String   @db.LongText
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       user[]
 }
 
 model user {
@@ -96,20 +116,24 @@ model user {
   root         Boolean       @default(false)
   authProvider AUTH_PROVIDER
 
-  verified   Boolean @default(false)
-  fileId     String?
-  govtFileId String?
-  avatar     file?   @relation("profilePhoto", fields: [fileId], references: [uuid])
-  govtId     file?   @relation("govtId", fields: [govtFileId], references: [uuid])
+  verified    Boolean      @default(false)
+  restriction restriction? @relation(fields: [restrictionid], references: [uuid])
+  fileId      String?
+  govtFileId  String?
+  avatar      file?        @relation("profilePhoto", fields: [fileId], references: [uuid])
+  govtId      file?        @relation("govtId", fields: [govtFileId], references: [uuid])
 
   // password
   password password? @relation(fields: [keyId], references: [uuid])
   keyId    String?
 
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
   property       property[]
   businessInfoId String?
+  subscription   subscription? @relation(fields: [subscriptionId], references: [uuid])
+  subscriptionId String?
+  restrictionid  String?
 }
 
 model file {
@@ -153,8 +177,24 @@ model propertyType {
   property   property? @relation(fields: [propertyId], references: [uuid])
   propertyId String?
 
-  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+model subscription {
+  id      Int                @unique @default(autoincrement())
+  uuid    String             @id @unique @default(cuid())
+  ref     String?
+  userRef String?
+  type    SUBSCRIPTION_MODEL @default(FREE)
+
+  expired  Boolean  @default(false)
+  duration DURATION @default(MONTHLY)
+  price    Float    @default(0)
+
+  users     user[]
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
 }
 
 model address {
