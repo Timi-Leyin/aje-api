@@ -69,8 +69,7 @@ export default async (req: Request, res: Response) => {
     }
 
     logger(uploadGovtId);
-    // logger(req.files)
-    logger(userType);
+    const businessOwned = USER != "BUYER";
 
     const user = await userService.createUser({
       email,
@@ -87,6 +86,14 @@ export default async (req: Request, res: Response) => {
         ? {
             connect: {
               uuid: uploadGovtId.uuid,
+            },
+          }
+        : undefined,
+      subscription: businessOwned
+        ? {
+            create: {
+              type: "FREE",
+              price: 0,
             },
           }
         : undefined,
@@ -130,7 +137,6 @@ export default async (req: Request, res: Response) => {
         accessToken: token,
       })
     );
-
   } catch (error) {
     return errorHandler(res, error);
   }
