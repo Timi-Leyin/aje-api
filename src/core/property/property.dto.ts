@@ -7,4 +7,10 @@ export interface createPropertyDTO {
   type?: PRODUCT_TYPE;
   price: string | number;
   listingType: LISTING_TYPE;
+
+  yearBuilt: string;
+  squareFeet: string;
+  bedrooms: number;
+  bathrooms: number;
+  address: number;
 }

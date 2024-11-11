@@ -63,10 +63,7 @@ const getProperties = async ({
     data: properties,
   };
 };
-type FilteredSpecifications = Omit<
-  specifications,
-  "id" | "createdAt" | "updatedAt" | "uuid"
->;
+type FilteredSpecifications = Partial<specifications>;
 
 interface createPropertyParams {
   title: string;

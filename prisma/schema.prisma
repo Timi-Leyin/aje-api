@@ -224,11 +224,11 @@ model specifications {
   id   Int    @unique @default(autoincrement())
   uuid String @id @unique @default(cuid())
 
-  bedrooms   Int
-  bathrooms  Int
+  bedrooms   Int?
+  bathrooms  Int?
   squareFeet String?
   lotSize    String?
-  yearBuilt  DateTime? // year it was built
+  yearBuilt  String? // year it was built
   furnishing FURNISHING @default(UNFURNISHED)
 
   parkingSpaces Int     @default(0)

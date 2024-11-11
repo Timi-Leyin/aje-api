@@ -8,8 +8,19 @@ import { createPropertyDTO } from "../property.dto";
 
 export default async (req: Request, res: Response) => {
   try {
-    const { description, title, tags, price, listingType, type } =
-      req.body as createPropertyDTO;
+    const {
+      description,
+      title,
+      tags,
+      price,
+      listingType,
+      type,
+      yearBuilt,
+      squareFeet,
+      bedrooms,
+      bathrooms,
+      address,
+    } = req.body as createPropertyDTO;
 
     // @ts-ignore
     if (
@@ -59,6 +70,12 @@ export default async (req: Request, res: Response) => {
       type: userType == "AGENT" ? "PROPERTY" : "SERVICES",
       images: uploadImages,
       tags,
+      specifications: {
+        yearBuilt:String(yearBuilt),
+        bathrooms:Number(bathrooms),
+        bedrooms:Number(bedrooms),
+        squareFeet:String(squareFeet),
+      },
     });
 
     return res.status(201).json(
