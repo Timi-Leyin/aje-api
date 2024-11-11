@@ -15,6 +15,8 @@ interface getPropertiesParams {
 
   where?: {
     agentId?: string;
+    title?: string;
+    type?: PRODUCT_TYPE;
   };
 }
 const getProperties = async ({
@@ -26,17 +28,28 @@ const getProperties = async ({
   const all = await db.property.count({
     where: {
       userId: where && where.agentId,
+      title: where && {
+        contains: where.title,
+      },
+      type: where && where.type,
     },
   });
 
+  logger(where && where.title);
   const properties = await db.property.findMany({
     where: {
       userId: where && where.agentId,
+      title: where && {
+        contains: where.title,
+      },
+      type: where && where.type,
     },
     skip: offset,
     take: limit,
     include: {
-      images: true,
+      images: {
+        take: 1,
+      },
     },
   });
 
@@ -153,7 +166,7 @@ const getProperty = async ({ uuid }: { uuid: string }) => {
         select: {
           email: true,
           bio: true,
-          type:true,
+          type: true,
           firstName: true,
           lastName: true,
           root: true,
