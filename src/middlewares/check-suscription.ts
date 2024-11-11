@@ -35,9 +35,12 @@ export default async (req: Request, res: Response, next: NextFunction) => {
     const countProperty = await db.property.count({
       where: {
         userId,
+        createdAt: {
+          gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+          lte: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+        },
       },
     });
-
     if (!subscription) {
       return NoSubscriptionResponse(res);
     }
@@ -45,7 +48,8 @@ export default async (req: Request, res: Response, next: NextFunction) => {
     if (subscription?.type == "FREE" && countProperty >= 3) {
       return res.status(400).json(
         responseObject({
-          message: "subscription Limit Exceeded, please upgrade for more",
+          message:
+            "subscription Limit Exceeded for this month, please upgrade for more",
         })
       );
     }
