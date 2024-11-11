@@ -18,6 +18,8 @@ import usersRoute from "./core/users/users.route";
 import authGuard from "./middlewares/auth-guard";
 import propertyRoutes from "./core/property/property.routes";
 import testsRoute from "./core/testing-api/testing-api.routes";
+import subscriptionRoutes from "./core/subscription/subscription.routes";
+import { paystackWebhook } from "./core/webhooks/payments/paystack";
 
 // import { multipleProperty } from "./helpers/random-data";
 // multipleProperty()
@@ -50,6 +52,8 @@ const apiRoutes = Router();
 apiRoutes.use(ROUTES.SUBROUTES.AUTH, authRoute);
 apiRoutes.use(ROUTES.SUBROUTES.PROFILE, authGuard, usersRoute);
 apiRoutes.use(ROUTES.SUBROUTES.PROPERTY, authGuard, propertyRoutes);
+apiRoutes.use(ROUTES.SUBROUTES.SUBSCRIPTION, authGuard, subscriptionRoutes);
+apiRoutes.use(ROUTES.SUBROUTES.PAYSTACK_WEBHOOK, paystackWebhook);
 
 apiRoutes.use("/test", testsRoute);
 // DO NOT TOUCH >>>>>>>>

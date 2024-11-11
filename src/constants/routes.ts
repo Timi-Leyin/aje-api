@@ -4,19 +4,20 @@ export const ROUTES = {
   INDEX_ID: "/:id",
   NEW: "/new",
   INITIALIZE: "/initialize",
-  CREATE_PASSWORD:"/create-password",
+  CREATE_PASSWORD: "/create-password",
   INSIGHTS: "/insights",
-  CURRENT_SUB:"/current",
-  SUBSCRIBE:"/subscribe",
+  CURRENT_SUB: "/current",
+  SUBSCRIBE: "/subscribe",
   SUBROUTES: {
     AUTH: "/auth",
-    SUBSCRIPTION:"/subscription",
+    SUBSCRIPTION: "/subscription",
     PROFILE: "/profile",
     ARTIST: "/artist",
     ADMIN: "/admin",
     PROPERTY: "/property",
     ARTWORK: "/artwork",
-    SALES:"/sales"
+    PAYSTACK_WEBHOOK: "/paystack/webhook",
+    SALES: "/sales",
   },
   MY_PROPERTY: "/my-property",
 
@@ -27,9 +28,9 @@ export const ROUTES = {
   GOOGLE_AUTH_CALLBACK: "/google/callback",
   GOOGLE_AUTH_CALLBACK_SUCCESS: "/google/callback/success",
   GOOGLE_AUTH_CALLBACK_FAILURE: "/google/callback/failure",
-  FORGOTTEN_PASSWORD:"/forgotten-password",
-  VERIFY_FORGOTTEN_PASSWORD:"/forgotten-password/verify",
-  
+  FORGOTTEN_PASSWORD: "/forgotten-password",
+  VERIFY_FORGOTTEN_PASSWORD: "/forgotten-password/verify",
+
   // ARTISTS MANAGER
   CREATE_MANAGER: "/artist-manager/new",
   ARTIST_MANAGER_REQUESTS: "/artist-manager/requests",
