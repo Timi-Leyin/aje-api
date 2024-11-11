@@ -39,6 +39,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(morgan("dev"));
 app.use(express.static(path.join(CWD, "public")));
+app.use(express.static(path.join(CWD, "temp")));
 app.engine("handlebars", engine());
 app.set("view engine", "handlebars");
 app.set("views", path.join(CWD, "templates", "pages"));

@@ -11,9 +11,10 @@ interface Uploader {
 
 const fileUploaderLocal = async ({ src, identifier }: Uploader) => {
   try {
+    const srcSplit = Array.from(src.trim().split("/").slice(-1)).join("");
     const file = await db.file.create({
       data: {
-        src: src,
+        src: srcSplit,
         provider: "SELF_HOSTED",
         type: "OTHERS",
       },
