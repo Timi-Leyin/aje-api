@@ -6,8 +6,11 @@ export const ROUTES = {
   INITIALIZE: "/initialize",
   CREATE_PASSWORD:"/create-password",
   INSIGHTS: "/insights",
+  CURRENT_SUB:"/current",
+  SUBSCRIBE:"/subscribe",
   SUBROUTES: {
     AUTH: "/auth",
+    SUBSCRIPTION:"/subscription",
     PROFILE: "/profile",
     ARTIST: "/artist",
     ADMIN: "/admin",

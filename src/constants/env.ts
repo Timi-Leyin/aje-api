@@ -15,4 +15,7 @@ export const ENV = {
 
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? "",
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ?? "",
+
+  PAYSTACK_PUBLIC_KEY: process.env.PAYSTACK_PUBLIC_KEY,
+  PAYSTACK_SECRET_KEY: process.env.PAYSTACK_SECRET_KEY,
 };

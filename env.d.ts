@@ -15,6 +15,9 @@ export declare global {
 
       GOOGLE_CLIENT_SECRET: string;
       GOOGLE_CLIENT_ID: string;
+
+      PAYSTACK_PUBLIC_KEY: string;
+      PAYSTACK_SECRET_KEY: string;
     }
   }
 }
