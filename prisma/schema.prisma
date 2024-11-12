@@ -214,6 +214,8 @@ model subscription {
   duration DURATION @default(MONTHLY)
   price    Float    @default(0)
 
+  active Boolean @default(false)
+
   users         user[]
   updatedAt     DateTime      @updatedAt
   nextPaymentAt DateTime?
