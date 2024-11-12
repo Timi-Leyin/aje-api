@@ -52,7 +52,7 @@ const apiRoutes = Router();
 
 apiRoutes.use(ROUTES.SUBROUTES.AUTH, authRoute);
 apiRoutes.use(ROUTES.SUBROUTES.PROFILE, authGuard, usersRoute);
-apiRoutes.use(ROUTES.SUBROUTES.PROPERTY, authGuard, propertyRoutes);
+apiRoutes.use(ROUTES.SUBROUTES.PROPERTY, propertyRoutes);
 apiRoutes.use(ROUTES.SUBROUTES.REVIEWS, authGuard, reviewsRoutes);
 apiRoutes.use(ROUTES.SUBROUTES.SUBSCRIPTION, authGuard, subscriptionRoutes);
 apiRoutes.use(ROUTES.SUBROUTES.PAYSTACK_WEBHOOK, paystackWebhook);

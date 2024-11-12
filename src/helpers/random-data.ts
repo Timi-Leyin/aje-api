@@ -82,11 +82,11 @@ export const createRandomProperty = async () => {
       parkingSpaces: faker.number.int({ max: 3 }),
       pool: faker.helpers.arrayElement([true, false]),
 
-      yearBuilt: new Date(),
+      yearBuilt: "2004",
       lotSize: null,
       squareFeet: null,
     },
-    userId: "cm34bftkl0000p5pmc1o95bdq",
+    userId: "cm3d55tl40003q3frg4idxeh2",
   });
 };
 

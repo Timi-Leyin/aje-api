@@ -2,11 +2,13 @@ import {
   file,
   LISTING_TYPE,
   PRODUCT_TYPE,
+  PROPERTY_STATUS,
   specifications,
   tag as Tag,
 } from "@prisma/client";
 import { db } from "../../config/database";
 import logger from "../../helpers/logger";
+import { FILTERED } from "./controllers/properties.controller";
 
 interface getPropertiesParams {
   limit: number;
@@ -17,38 +19,60 @@ interface getPropertiesParams {
     agentId?: string;
     title?: string;
     type?: PRODUCT_TYPE;
+    minPrice?: number;
+    maxPrice?: number;
+    hasLegalDocuments?: boolean;
+    tags?: string;
+    listingType?: LISTING_TYPE;
+    status?: PROPERTY_STATUS;
+  };
+
+  filters?: {
+    by?: FILTERED;
+    value?: string | number | boolean;
   };
 }
+
 const getProperties = async ({
   limit,
   offset,
   page,
   where,
+  filters,
 }: getPropertiesParams) => {
+  const filterConditions = {
+    userId: where?.agentId,
+    title: where?.title ? { contains: where.title } : undefined,
+    type: where?.type,
+    price:
+      where?.minPrice && where?.maxPrice
+        ? { gte: where.minPrice, lte: where.maxPrice }
+        : undefined,
+    hasLegalDocuments: where?.hasLegalDocuments,
+    tags:
+      filters && filters?.by == "tags"
+        ? { some: { name: { contains: filters.value as string } } }
+        : undefined,
+
+    listingType: where?.listingType,
+    status: where?.status,
+  };
+
   const all = await db.property.count({
-    where: {
-      userId: where && where.agentId,
-      title: where && {
-        contains: where.title,
-      },
-      type: where && where.type,
-    },
+    where: filterConditions,
   });
+
   const properties = await db.property.findMany({
-    where: {
-      userId: where && where.agentId,
-      title: where && {
-        contains: where.title,
-      },
-      type: where && where.type,
-    },
+    where: filterConditions,
     skip: offset,
     take: limit,
     include: {
-      images: {
-        take: 1,
-      },
+      images: { take: 1 },
     },
+    orderBy:
+      filters?.by === "top-reviewed"
+        ? { reviews: { _count: "desc" } }
+        : undefined,
   });
 
   return {
@@ -61,6 +85,7 @@ const getProperties = async ({
     data: properties,
   };
 };
+
 type FilteredSpecifications = Partial<specifications>;
 
 interface createPropertyParams {
@@ -161,6 +186,11 @@ const getProperty = async ({ uuid }: { uuid: string }) => {
         select: {
           email: true,
           bio: true,
+          business: {
+            include: {
+              address: true,
+            },
+          },
           type: true,
           firstName: true,
           lastName: true,

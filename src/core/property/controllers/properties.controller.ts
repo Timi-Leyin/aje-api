@@ -5,14 +5,17 @@ import propertyService from "../property.service";
 import responseObject from "../../../helpers/response-object";
 import { PRODUCT_TYPE } from "@prisma/client";
 
+export type FILTERED = "tags" | "top-reviewed";
 type QueryParams = {
   query: string;
   type: PRODUCT_TYPE;
+  filterdBy?: FILTERED;
+  filterValue?: string;
 };
 
 export default async (req: Request, res: Response) => {
   try {
-    const { query, type } = req.query as QueryParams;
+    const { query, type, filterValue, filterdBy } = req.query as QueryParams;
     const { limit, offset, page } = getPaginaionParams(req);
     const properties = await propertyService.getProperties({
       limit,
@@ -22,6 +25,11 @@ export default async (req: Request, res: Response) => {
       where: {
         title: query,
         type,
+      },
+
+      filters: {
+        by: filterdBy,
+        value: filterValue,
       },
     });
 
