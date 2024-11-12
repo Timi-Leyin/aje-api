@@ -8,6 +8,7 @@ export const ROUTES = {
   INSIGHTS: "/insights",
   CURRENT_SUB: "/current",
   SUBSCRIBE: "/subscribe",
+  CANCEL: "/cancel",
   SUBROUTES: {
     AUTH: "/auth",
     SUBSCRIPTION: "/subscription",
