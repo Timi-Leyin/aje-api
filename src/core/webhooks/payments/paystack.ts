@@ -9,6 +9,7 @@ import { paystack } from "../../../config/paystack";
 export const paystackWebhook = async (req: Request, res: Response) => {
   try {
     const secret = ENV.PAYSTACK_SECRET_KEY as string;
+    logger("[METHOD]", req.method);
     const hash = crypto
       .createHmac("sha512", secret)
       .update(JSON.stringify(req.body))
@@ -63,6 +64,7 @@ export const paystackWebhook = async (req: Request, res: Response) => {
                 uuid: transaction.subscriptionId,
               },
               data: {
+                active: true,
                 ref: String(subscribe.subscription_code),
                 nextPaymentAt: subscribe.next_payment_date,
                 users: {
@@ -93,9 +95,24 @@ export const paystackWebhook = async (req: Request, res: Response) => {
         },
       });
     } else if (event.event === "invoice.payment_failed") {
-      // console.log("Payment failed:", event);
+      await db.subscription.updateMany({
+        where: {
+          ref: event.data.subscription.subscription_code,
+        },
+        data: {
+          active: false,
+          expired: true,
+        },
+      });
     } else if (event.event === "subscription.not_renewed") {
-      // console.log("Subscription expired:", event);
+      await db.subscription.updateMany({
+        where: {
+          ref: event.data.subscription.subscription_code,
+        },
+        data: {
+          active: false,
+        },
+      });
     }
     // else{
     //     logger(event.event)
