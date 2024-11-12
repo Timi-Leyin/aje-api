@@ -81,6 +81,12 @@ interface Plan {
 type getPlansResponse = Plan[];
 type getPlanResponse = Plan;
 
+interface cancelSubscriptionParams {
+  code: string;
+  token: string;
+}
+interface cancelSubscriptionResponse {}
+
 const Paystack = class Paystack {
   private options: Options;
   private api: AxiosInstance;
@@ -162,6 +168,17 @@ const Paystack = class Paystack {
     } catch (error) {
       throw error;
     }
+  };
+
+  /**
+   * CANCEL SUBSCRIPTION
+   **/
+
+  cancelSubscription = async (data: cancelSubscriptionParams) => {
+    const response = await this.api.post<
+      AxiosResponse<cancelSubscriptionResponse, any>
+    >("/subscription/disable", data);
+    return response.data.data;
   };
 };
 
