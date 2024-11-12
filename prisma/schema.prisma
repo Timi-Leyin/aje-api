@@ -156,6 +156,7 @@ model user {
   subscription   subscription? @relation(fields: [subscriptionId], references: [uuid])
   subscriptionId String?
   restrictionid  String?
+  reviews        reviews[]
 }
 
 model file {
@@ -288,6 +289,22 @@ model tag {
   propertyId String?
 }
 
+model reviews {
+  id     Int    @unique @default(autoincrement())
+  uuid   String @id @unique @default(cuid())
+  rating Int    @default(1)
+  user   user?  @relation(fields: [userId], references: [uuid])
+
+  title   String
+  content String? @db.Text
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  property   property? @relation(fields: [propertyId], references: [uuid])
+  propertyId String?
+  userId   String?
+}
+
 model property {
   id    Int     @unique @default(autoincrement())
   uuid  String  @id @unique @default(cuid())
@@ -301,6 +318,8 @@ model property {
   images            file[]
   videoTour         file?           @relation("videoTour", fields: [tourFileId], references: [uuid])
   title             String
+
+  reviews reviews[]
 
   views    Int      @default(0)
   currency CURRENCY @default(NGN)

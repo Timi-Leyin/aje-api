@@ -34,8 +34,6 @@ const getProperties = async ({
       type: where && where.type,
     },
   });
-
-  logger(where && where.title);
   const properties = await db.property.findMany({
     where: {
       userId: where && where.agentId,

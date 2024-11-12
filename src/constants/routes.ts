@@ -9,8 +9,10 @@ export const ROUTES = {
   CURRENT_SUB: "/current",
   SUBSCRIBE: "/subscribe",
   CANCEL: "/cancel",
+  PRODUCT_ID: "/:productId",
   SUBROUTES: {
     AUTH: "/auth",
+    REVIEWS: "/reviews",
     SUBSCRIPTION: "/subscription",
     PROFILE: "/profile",
     ARTIST: "/artist",
