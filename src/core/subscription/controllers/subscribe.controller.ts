@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import errorHandler from "../../helpers/error-handler";
-import { paystack } from "../../config/paystack";
-import responseObject from "../../helpers/response-object";
-import logger from "../../helpers/logger";
-import { db } from "../../config/database";
+import errorHandler from "../../../helpers/error-handler";
+import { paystack } from "../../../config/paystack";
+import responseObject from "../../../helpers/response-object";
+import logger from "../../../helpers/logger";
+import { db } from "../../../config/database";
 import { SUBSCRIPTION_MODEL } from "@prisma/client";
 
 // PLN_2fbvlm4b9zq20tm for silver

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import errorHandler from "../../helpers/error-handler";
-import { paystack } from "../../config/paystack";
-import responseObject from "../../helpers/response-object";
+import errorHandler from "../../../helpers/error-handler";
+import { paystack } from "../../../config/paystack";
+import responseObject from "../../../helpers/response-object";
 
 export default async (req: Request, res: Response) => {
   try {

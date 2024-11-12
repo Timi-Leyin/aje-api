@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { ROUTES } from "../../constants/routes";
-import listAllSubscriptionController from "./list-all-subscription.controller";
-import currentSubscriptionController from "./current-subscription.controller";
-import subscribeController from "./subscribe.controller";
-import cancelSubscriptionConroller from "./cancel-subscription.conroller";
+import listAllSubscriptionController from "./controllers/list-all-subscription.controller";
+import currentSubscriptionController from "./controllers/current-subscription.controller";
+import subscribeController from "./controllers/subscribe.controller";
+import cancelSubscriptionConroller from "./controllers/cancel-subscription.conroller";
 
 const subscriptionRoutes = Router();
 
