@@ -38,7 +38,7 @@ export const paystackWebhook = async (req: Request, res: Response) => {
       }
 
       if (transaction.paidAt && transaction.sub && transaction.sub.ref) {
-        logger(event.data)
+        logger(event.data);
         logger("Already Paid");
         return res.status(200);
       }
@@ -56,7 +56,7 @@ export const paystackWebhook = async (req: Request, res: Response) => {
           status: "SUCCESS",
           idAddress: event.data.ip_address,
           paidAt: new Date(event.data.paid_at || new Date()).toISOString(),
-          fee: event.data.fees,
+          fee: Number(event.data.fees),
           sub: {
             update: {
               where: {
@@ -75,15 +75,33 @@ export const paystackWebhook = async (req: Request, res: Response) => {
           },
         },
       });
+    } else if (event.event === "invoice.create") {
+      await db.subscription.updateMany({
+        where: {
+          ref: event.data.subscription.subscription_code,
+        },
+        data: {
+          price: event.data.amount / 100,
+          nextPaymentAt:
+            event.data.transaction.status == "success"
+              ? event.data.subscription.next_payment_date
+              : undefined,
+          createdAt:
+            event.data.transaction.status == "success"
+              ? new Date().toISOString()
+              : undefined,
+        },
+      });
     } else if (event.event === "invoice.payment_failed") {
-      console.log("Payment failed:", event);
+      // console.log("Payment failed:", event);
     } else if (event.event === "subscription.not_renewed") {
-      console.log("Subscription expired:", event);
+      // console.log("Subscription expired:", event);
     }
     // else{
     //     logger(event.event)
     // }
 
+    // logger(event);
     res.sendStatus(200);
   } catch (error) {
     return errorHandler(res, error);

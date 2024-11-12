@@ -13,7 +13,18 @@ interface PaystackEventData {
   metadata: string;
   fees_breakdown: null;
   log: null;
-  fees: 14500;
+  subscription: {
+    subscription_code: string;
+    amount: number;
+    next_payment_date: string | Date;
+    cron_expression: string;
+    status: string;
+    [key: string]: any;
+  };
+  transaction: {
+    [key: string]: any;
+  };
+  fees: string;
   customer: {
     id: number;
     email: string;
