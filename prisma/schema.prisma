@@ -35,6 +35,7 @@ enum PROVIDER {
   CLOUDINARY
   SELF_HOSTED
   GOOGLE
+  OTHERS
 }
 
 enum LISTING_TYPE {
@@ -106,6 +107,7 @@ model businessInfo {
   uuid String @id @unique @default(cuid())
 
   name      String
+  phone String?
   address   address  @relation(fields: [addressId], references: [uuid])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -255,6 +257,7 @@ model address {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   businessInfo businessInfo[]
+  property     property[]
 }
 
 model specifications {
@@ -302,14 +305,15 @@ model reviews {
   updatedAt  DateTime  @updatedAt
   property   property? @relation(fields: [propertyId], references: [uuid])
   propertyId String?
-  userId   String?
+  userId     String?
 }
 
 model property {
-  id    Int     @unique @default(autoincrement())
-  uuid  String  @id @unique @default(cuid())
-  agent user    @relation(fields: [userId], references: [uuid])
-  price Decimal
+  id      Int      @unique @default(autoincrement())
+  uuid    String   @id @unique @default(cuid())
+  agent   user     @relation(fields: [userId], references: [uuid])
+  price   Decimal
+  address address? @relation(fields: [addressId], references: [uuid])
 
   type PRODUCT_TYPE @default(PROPERTY)
 
@@ -337,4 +341,5 @@ model property {
   tourFileId       String?
   userId           String
   specificationsId String?
+  addressId        String?
 }

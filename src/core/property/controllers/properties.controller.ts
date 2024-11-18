@@ -11,11 +11,15 @@ type QueryParams = {
   type: PRODUCT_TYPE;
   filterdBy?: FILTERED;
   filterValue?: string;
+  tag?: string;
+  bathroom?: string | number;
+  bedroom?: string | number;
 };
 
 export default async (req: Request, res: Response) => {
   try {
-    const { query, type, filterValue, filterdBy } = req.query as QueryParams;
+    const { query, type, filterValue, filterdBy, bathroom, bedroom, tag } =
+      req.query as QueryParams;
     const { limit, offset, page } = getPaginaionParams(req);
     const properties = await propertyService.getProperties({
       limit,
@@ -25,6 +29,9 @@ export default async (req: Request, res: Response) => {
       where: {
         title: query,
         type,
+        bathroom,
+        bedroom,
+        tag,
       },
 
       filters: {

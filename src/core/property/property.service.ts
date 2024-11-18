@@ -25,6 +25,9 @@ interface getPropertiesParams {
     tags?: string;
     listingType?: LISTING_TYPE;
     status?: PROPERTY_STATUS;
+    bathroom?: string | number;
+    bedroom?: string | number;
+    tag?: string;
   };
 
   filters?: {
@@ -44,18 +47,41 @@ const getProperties = async ({
     userId: where?.agentId,
     title: where?.title ? { contains: where.title } : undefined,
     type: where?.type,
-    price:
-      where?.minPrice && where?.maxPrice
-        ? { gte: where.minPrice, lte: where.maxPrice }
-        : undefined,
-    hasLegalDocuments: where?.hasLegalDocuments,
+    // price:
+    //   where?.minPrice && where?.maxPrice
+    //     ? { gte: where.minPrice, lte: where.maxPrice }
+    //     : undefined,
+    // hasLegalDocuments: where?.hasLegalDocuments,
     tags:
       filters && filters?.by == "tags"
         ? { some: { name: { contains: filters.value as string } } }
+        : where && where.tag
+        ? {
+            some: {
+              name: {
+                contains: where.tag,
+              },
+            },
+          }
         : undefined,
 
-    listingType: where?.listingType,
-    status: where?.status,
+    // listingType: where?.listingType,
+    // status: where?.status,
+    specifications:
+      where && (where.bathroom || where.bedroom)
+        ? {
+            bathrooms: where?.bathroom
+              ? {
+                  equals: Number(where.bathroom),
+                }
+              : undefined,
+            bedrooms: where?.bedroom
+              ? {
+                  equals: Number(where.bedroom),
+                }
+              : undefined,
+          }
+        : undefined,
   };
 
   const all = await db.property.count({
@@ -68,6 +94,7 @@ const getProperties = async ({
     take: limit,
     include: {
       images: { take: 1 },
+      address: true,
     },
     orderBy:
       filters?.by === "top-reviewed"
@@ -94,6 +121,10 @@ interface createPropertyParams {
   listingType: LISTING_TYPE;
   userId: string;
   tags: string;
+  videoTour?: string;
+  longitude?: string | number;
+  latitude?: string | number;
+  address?: string;
   images: file[];
   type?: PRODUCT_TYPE;
   price: string | number;
@@ -131,9 +162,13 @@ const createProperties = async ({
   userId,
   images,
   tags,
+  videoTour,
   price,
   type,
   specifications,
+  address,
+  latitude,
+  longitude,
 }: createPropertyParams) => {
   const tagsArray = (tags || "")
     .trim()
@@ -148,10 +183,25 @@ const createProperties = async ({
       description,
       type,
       listingType: listingType.toUpperCase() as LISTING_TYPE,
+      address: {
+        create: {
+          address: String(address),
+          latitude: Number(latitude),
+          longitude: Number(longitude),
+        },
+      },
       price,
       tags: {
         connect: allTags,
       },
+      videoTour: videoTour
+        ? {
+            create: {
+              src: videoTour,
+              provider: "OTHERS",
+            },
+          }
+        : undefined,
       specifications: specifications
         ? {
             create: {
@@ -204,6 +254,7 @@ const getProperty = async ({ uuid }: { uuid: string }) => {
           },
         },
       },
+      address: true,
       videoTour: true,
       propertyType: true,
     },

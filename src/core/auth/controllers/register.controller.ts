@@ -21,6 +21,7 @@ export default async (req: Request, res: Response) => {
       userType,
       businessAddress,
       businessName,
+      phone,
     } = req.body as RegisterDTO;
     // check if user with email exists
     const userExists = await userService.checkUserEmail(email, {});
@@ -102,6 +103,7 @@ export default async (req: Request, res: Response) => {
           ? {
               create: {
                 name: businessName,
+                phone,
                 cac: uploadCacDoc
                   ? {
                       connect: {

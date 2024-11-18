@@ -6,11 +6,14 @@ export interface createPropertyDTO {
   tags: string;
   type?: PRODUCT_TYPE;
   price: string | number;
+  latitude:string|number;
+  longitude:string|number;
   listingType: LISTING_TYPE;
+  videoTour?:string;
 
   yearBuilt: string;
   squareFeet: string;
   bedrooms: number;
   bathrooms: number;
-  address: number;
+  address: string;
 }

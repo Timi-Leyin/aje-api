@@ -12,6 +12,7 @@ export default async (req: Request, res: Response) => {
       description,
       title,
       tags,
+      videoTour,
       price,
       listingType,
       type,
@@ -20,6 +21,8 @@ export default async (req: Request, res: Response) => {
       bedrooms,
       bathrooms,
       address,
+      latitude,
+      longitude
     } = req.body as createPropertyDTO;
 
     // @ts-ignore
@@ -66,6 +69,10 @@ export default async (req: Request, res: Response) => {
       description,
       title,
       listingType,
+      address,
+      latitude,
+      longitude,
+      videoTour,
       price,
       type: userType == "AGENT" ? "PROPERTY" : "SERVICES",
       images: uploadImages,

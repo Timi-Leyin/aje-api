@@ -6,6 +6,7 @@ export interface LoginDTO {
 export interface RegisterDTO extends LoginDTO {
   firstName: string;
   lastName: string;
+  phone?:string;
   businessAddress?: string;
   businessName?: string;
   userType: "Users" | "Agent/Property Owner" | "Artisan" | "Vendor";
