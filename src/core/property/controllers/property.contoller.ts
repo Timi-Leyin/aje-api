@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import errorHandler from "../../../helpers/error-handler";
 import propertyService from "../property.service";
 import responseObject from "../../../helpers/response-object";
+import markAsView from "../../../helpers/mark-as-view";
+import logger from "../../../helpers/logger";
 
 export default async (req: Request, res: Response) => {
   try {
@@ -13,6 +15,12 @@ export default async (req: Request, res: Response) => {
           message: "Property not found",
         })
       );
+    }
+
+    // @ts-ignore
+    if (req.user && req.user.uuid) {
+      // @ts-ignore
+      await markAsView(req.user.uuid, property.uuid);
     }
 
     return res.status(200).json(

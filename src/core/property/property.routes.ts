@@ -9,6 +9,7 @@ import propertyContoller from "./controllers/property.contoller";
 import checkSuscription from "../../middlewares/check-suscription";
 import myPropertiesController from "./controllers/my-properties.controller";
 import authGuard from "../../middlewares/auth-guard";
+import authGuardOptional from "../../middlewares/auth-guard-optional";
 
 const propertyRoutes = Router();
 
@@ -16,7 +17,7 @@ const upload = multerUpload.fields([{ name: "images", maxCount: 5 }]);
 
 propertyRoutes.get(ROUTES.MY_PROPERTY, authGuard, myPropertiesController);
 propertyRoutes.get(ROUTES.INDEX, propertiesController);
-propertyRoutes.get(ROUTES.INDEX_ID, propertyContoller);
+propertyRoutes.get(ROUTES.INDEX_ID,authGuardOptional, propertyContoller);
 propertyRoutes.post(
   ROUTES.INDEX,
   authGuard,
