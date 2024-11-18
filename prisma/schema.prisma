@@ -107,7 +107,7 @@ model businessInfo {
   uuid String @id @unique @default(cuid())
 
   name      String
-  phone String?
+  phone     String?
   address   address  @relation(fields: [addressId], references: [uuid])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -159,6 +159,7 @@ model user {
   subscriptionId String?
   restrictionid  String?
   reviews        reviews[]
+  viewed         property[]    @relation("viewed")
 }
 
 model file {
@@ -325,7 +326,7 @@ model property {
 
   reviews reviews[]
 
-  views    Int      @default(0)
+  views    user[]   @relation("viewed")
   currency CURRENCY @default(NGN)
   tags     tag[]
 
