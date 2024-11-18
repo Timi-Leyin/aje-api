@@ -6,14 +6,12 @@ import { updateProfileDTO } from "../users.dto";
 
 export default async (req: Request, res: Response) => {
   try {
-    const { firstName, lastName, bio, phone } = req.body as updateProfileDTO;
+    const { firstName, lastName } = req.body as updateProfileDTO;
     // TODO [] update gender
     // @ts-ignore
     await userService.updateUser(req.user.email, {
       firstName,
       lastName,
-      bio,
-      phone,
     });
 
     return res.status(200).json(
