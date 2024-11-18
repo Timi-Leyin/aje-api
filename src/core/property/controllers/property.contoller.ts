@@ -17,6 +17,11 @@ export default async (req: Request, res: Response) => {
       );
     }
 
+    const more = await propertyService.getMoreFromAgent({
+      userId: property.userId,
+      limit: 5,
+    });
+
     // @ts-ignore
     if (req.user && req.user.uuid) {
       // @ts-ignore
@@ -27,6 +32,10 @@ export default async (req: Request, res: Response) => {
       responseObject({
         message: "Property Retrieved",
         data: property,
+        others: {
+          more,
+          
+        },
       })
     );
   } catch (error) {

@@ -262,10 +262,32 @@ const getProperty = async ({ uuid }: { uuid: string }) => {
   return property;
 };
 
+const getMoreFromAgent = async ({
+  userId,
+  limit = 5,
+}: {
+  userId: string;
+  limit: number;
+}) => {
+  const properties = await db.property.findMany({
+    where: {
+      userId,
+    },
+    take: Math.min(5, limit),
+    include: {
+      images: { take: 1 },
+      address: true,
+    },
+  });
+
+  return properties;
+};
+
 const propertyService = {
   getProperties,
   createProperties,
   getProperty,
+  getMoreFromAgent,
 };
 
 export default propertyService;

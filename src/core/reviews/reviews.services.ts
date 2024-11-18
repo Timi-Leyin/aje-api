@@ -33,6 +33,14 @@ const getReviews = async ({
     where: {
       propertyId,
     },
+    include: {
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
     skip: offset,
     take: limit,
   });
@@ -78,7 +86,7 @@ const addReview = async ({
 
 const reviewServices = {
   getReviews,
-  addReview
+  addReview,
 };
 
 export default reviewServices;
