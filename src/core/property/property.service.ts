@@ -59,7 +59,7 @@ const getProperties = async ({
         ? {
             some: {
               name: {
-                contains: where.tag,
+                contains: where.tag.toLowerCase(),
               },
             },
           }
@@ -72,18 +72,19 @@ const getProperties = async ({
         ? {
             bathrooms: where?.bathroom
               ? {
-                  equals: Number(where.bathroom),
+                  gte: Number(where.bathroom),
                 }
               : undefined,
             bedrooms: where?.bedroom
               ? {
-                  equals: Number(where.bedroom),
+                  gte: Number(where.bedroom),
                 }
               : undefined,
           }
         : undefined,
   };
 
+  logger(where);
   const all = await db.property.count({
     where: filterConditions,
   });
@@ -95,6 +96,7 @@ const getProperties = async ({
     include: {
       images: { take: 1 },
       address: true,
+      tags: true,
     },
     orderBy:
       filters?.by === "top-reviewed"
@@ -127,6 +129,23 @@ interface createPropertyParams {
   address?: string;
   images: file[];
   type?: PRODUCT_TYPE;
+  price: string | number;
+  specifications?: FilteredSpecifications;
+}
+interface editPropertyParams {
+  title: string;
+  description: string;
+  listingType: LISTING_TYPE;
+  userId: string;
+  propertyId: string;
+  status: PROPERTY_STATUS;
+  // tags: string;
+  videoTour?: string;
+  // longitude?: string | number;
+  // latitude?: string | number;
+  address?: string;
+  // images: file[];
+  // type?: PRODUCT_TYPE;
   price: string | number;
   specifications?: FilteredSpecifications;
 }
@@ -222,6 +241,58 @@ const createProperties = async ({
 
   return property;
 };
+const updateProperties = async ({
+  title,
+  description,
+  listingType,
+  userId,
+  propertyId,
+  // images,
+  // tags,
+  videoTour,
+  price,
+  status,
+  // type,
+  specifications,
+  address,
+}: editPropertyParams) => {
+  const property = await db.property.update({
+    where: {
+      uuid: propertyId,
+      userId: userId,
+    },
+    data: {
+      title,
+      description,
+      // type,
+      listingType: listingType.toUpperCase() as LISTING_TYPE,
+      address: {
+        update: {
+          address: String(address),
+        },
+      },
+      price,
+      status,
+      videoTour: videoTour
+        ? {
+            update: {
+              src: videoTour,
+              provider: "OTHERS",
+            },
+          }
+        : undefined,
+      specifications: specifications
+        ? {
+            update: {
+              ...specifications,
+            },
+          }
+        : undefined,
+    },
+  });
+
+  return property;
+};
 
 const getProperty = async ({ uuid }: { uuid: string }) => {
   const property = await db.property.findUnique({
@@ -287,6 +358,7 @@ const propertyService = {
   getProperties,
   createProperties,
   getProperty,
+  updateProperties,
   getMoreFromAgent,
 };
 

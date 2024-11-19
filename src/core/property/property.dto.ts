@@ -1,4 +1,4 @@
-import { LISTING_TYPE, PRODUCT_TYPE } from "@prisma/client";
+import { LISTING_TYPE, PRODUCT_TYPE, PROPERTY_STATUS } from "@prisma/client";
 
 export interface createPropertyDTO {
   description: string;
@@ -6,10 +6,12 @@ export interface createPropertyDTO {
   tags: string;
   type?: PRODUCT_TYPE;
   price: string | number;
-  latitude:string|number;
-  longitude:string|number;
+  latitude: string | number;
+  longitude: string | number;
   listingType: LISTING_TYPE;
-  videoTour?:string;
+  status: string;
+  propertyId: string;
+  videoTour?: string;
 
   yearBuilt: string;
   squareFeet: string;
