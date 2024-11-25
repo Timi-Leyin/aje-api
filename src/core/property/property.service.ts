@@ -53,7 +53,7 @@ const getProperties = async ({
     //     : undefined,
     // hasLegalDocuments: where?.hasLegalDocuments,
     tags:
-      filters && filters?.by == "tags"
+      filters && filters?.by == "tags" && filters.value 
         ? { some: { name: { contains: filters.value as string } } }
         : where && where.tag
         ? {

@@ -134,7 +134,9 @@ model user {
   firstName    String?
   lastName     String?
   phone        String?
+  skills       String?
   bio          String?
+  gallery      file[]        @relation("gallery")
   business     businessInfo? @relation(fields: [businessInfoId], references: [uuid])
   gender       GENDER?
   type         USER_TYPE     @default(BUYER)
@@ -181,6 +183,8 @@ model file {
   propertyId    String?
   propertyVideo property[]     @relation("videoTour")
   businessInfo  businessInfo[]
+  artisan       user?          @relation("gallery", fields: [artisanId], references: [uuid])
+  artisanId     String?
 }
 
 model password {

@@ -4,10 +4,12 @@ import myProfileController from "./controllers/my-profile.controller";
 import { updateProfileSchema } from "../../schemas/profile.schema";
 import bodyValidation from "../../middlewares/body-validation";
 import editProfileController from "./controllers/edit-profile.controller";
+import userProfileController from "./controllers/user-profile.controller";
 
 const usersRoute = Router();
 
 usersRoute.get(ROUTES.INDEX, myProfileController);
+usersRoute.get(ROUTES.INDEX_ID, userProfileController);
 
 usersRoute.put(
   ROUTES.INDEX,

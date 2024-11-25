@@ -39,7 +39,7 @@ export const paystackWebhook = async (req: Request, res: Response) => {
       }
 
       if (transaction.paidAt && transaction.sub && transaction.sub.ref) {
-        logger(event.data);
+        // logger(event.data);
         logger("Already Paid");
         return res.status(200);
       }

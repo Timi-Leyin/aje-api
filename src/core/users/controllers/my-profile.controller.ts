@@ -4,7 +4,6 @@ import responseObject from "../../../helpers/response-object";
 
 export default (req: Request, res: Response) => {
   try {
-    console.log("My Profile")
     return res.status(200).json(
       responseObject({
         message: "Profile Retrieved",

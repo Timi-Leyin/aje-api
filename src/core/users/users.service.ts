@@ -21,6 +21,7 @@ interface UpdateUser {
   bio?: string;
   phone?: string;
   gender?: GENDER;
+  skills?:string;
 }
 const updateUser = async (email: string, data: UpdateUser) => {
   return db.user.update({

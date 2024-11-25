@@ -21,6 +21,7 @@ import testsRoute from "./core/testing-api/testing-api.routes";
 import subscriptionRoutes from "./core/subscription/subscription.routes";
 import { paystackWebhook } from "./core/webhooks/payments/paystack";
 import reviewsRoutes from "./core/reviews/reviews.route";
+import artisanRoutes from "./core/artisans/artisan.routes";
 
 // import { multipleProperty } from "./helpers/random-data";
 // multipleProperty()
@@ -53,6 +54,7 @@ const apiRoutes = Router();
 apiRoutes.use(ROUTES.SUBROUTES.AUTH, authRoute);
 apiRoutes.use(ROUTES.SUBROUTES.PROFILE, authGuard, usersRoute);
 apiRoutes.use(ROUTES.SUBROUTES.PROPERTY, propertyRoutes);
+apiRoutes.use(ROUTES.SUBROUTES.ARTISAN, artisanRoutes);
 apiRoutes.use(ROUTES.SUBROUTES.REVIEWS, authGuard, reviewsRoutes);
 apiRoutes.use(ROUTES.SUBROUTES.SUBSCRIPTION, authGuard, subscriptionRoutes);
 apiRoutes.use(ROUTES.SUBROUTES.PAYSTACK_WEBHOOK, paystackWebhook);
