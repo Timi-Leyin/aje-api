@@ -7,10 +7,14 @@ import responseObject from "../../../helpers/response-object";
 export default async (req: Request, res: Response) => {
   try {
     const { limit, offset, page } = getPaginaionParams(req);
+    const {query}  = req.query
     const data = await artisanServices.getArtisans({
       limit,
       offset,
       page,
+      filters:{
+        query:query as string
+      },
     });
 
     return res.status(200).json(

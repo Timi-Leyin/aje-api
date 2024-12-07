@@ -315,13 +315,15 @@ model reviews {
 }
 
 model property {
-  id      Int      @unique @default(autoincrement())
-  uuid    String   @id @unique @default(cuid())
-  agent   user     @relation(fields: [userId], references: [uuid])
-  price   Decimal
-  address address? @relation(fields: [addressId], references: [uuid])
+  id          Int      @unique @default(autoincrement())
+  uuid        String   @id @unique @default(cuid())
+  marketplace Boolean  @default(false)
+  agent       user     @relation(fields: [userId], references: [uuid])
+  price       Decimal
+  address     address? @relation(fields: [addressId], references: [uuid])
 
-  type PRODUCT_TYPE @default(PROPERTY)
+  phone String?
+  type  PRODUCT_TYPE @default(PROPERTY)
 
   specifications    specifications? @relation(fields: [specificationsId], references: [uuid])
   hasLegalDocuments Boolean         @default(false)

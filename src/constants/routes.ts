@@ -14,6 +14,7 @@ export const ROUTES = {
   SUBROUTES: {
     AUTH: "/auth",
     ARTISAN: "/artisan",
+    MARKETPLACE:"/marketplace",
     REVIEWS: "/reviews",
     SUBSCRIPTION: "/subscription",
     PROFILE: "/profile",

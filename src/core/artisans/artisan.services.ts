@@ -10,11 +10,28 @@ const getArtisans = async ({
   limit?: number;
   offset?: number;
   page?: number;
-  filters?: { name?: string; location?: string };
+  filters?: { name?: string; location?: string; query?: string };
 }) => {
+  const filtersQuery =
+    filters?.query?.split(",").map((skill) => skill.trim()) || [];
+
   // Build the filter conditions based on filters
   const filterConditions = {
     type: USER_TYPE.ARTISAN,
+    OR: filters?.query? [
+      // Check if any skill matches
+      ...filtersQuery.map((querySkill) => ({
+        skills: {
+          contains: querySkill,
+        },
+      })),
+      // Check if any word matches in the bio
+      ...filtersQuery.map((queryWord) => ({
+        bio: {
+          contains: queryWord,
+        },
+      })),
+    ]:undefined,
   };
 
   // Calculate the total number of artisans matching the criteria

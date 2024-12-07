@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { validationResult } from "express-validator";
 import responseObject from "../helpers/response-object";
+import logger from "../helpers/logger";
 
 export default (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
