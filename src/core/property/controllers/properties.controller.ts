@@ -13,7 +13,7 @@ type QueryParams = {
   filterdBy?: FILTERED;
   filterValue?: string;
   tag?: string;
-  marketplace?: boolean;
+  marketplace?: string;
   listingType?: "Rent" | "Sale" | "Shotlet" | "Hotel";
   bathroom?: string | number;
   bedroom?: string | number;

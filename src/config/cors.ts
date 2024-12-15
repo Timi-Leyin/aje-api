@@ -1,5 +1,5 @@
 import { CorsOptions } from "cors";
 
 export const corsOptions: CorsOptions = {
-  origin: ["*"],
+  origin: ["*", "http://localhost:3000"],
 };

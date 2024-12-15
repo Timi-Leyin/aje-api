@@ -1,6 +1,7 @@
 import {
   file,
   LISTING_TYPE,
+  Prisma,
   PRODUCT_TYPE,
   PROPERTY_STATUS,
   specifications,
@@ -28,7 +29,7 @@ interface getPropertiesParams {
     bathroom?: string | number;
     bedroom?: string | number;
     tag?: string;
-    marketplace?: boolean;
+    marketplace?: string;
   };
 
   filters?: {
@@ -45,7 +46,9 @@ const getProperties = async ({
   where,
   filters,
 }: getPropertiesParams) => {
-  const filterConditions = {
+  const marketplace = Boolean(where?.marketplace == "true");
+  console.log(marketplace, "marketplace");
+  const filterConditions: Prisma.propertyWhereInput = {
     userId: where?.agentId,
     title: where?.title ? { contains: where.title } : undefined,
     OR: [
@@ -70,7 +73,9 @@ const getProperties = async ({
         listingType: filters?.listingType?.toLocaleUpperCase() as LISTING_TYPE,
       },
     ],
-    marketplace: Boolean(where?.marketplace),
+    marketplace: {
+      equals: marketplace,
+    },
     type: where?.type,
     // price:
     //   where?.minPrice && where?.maxPrice
