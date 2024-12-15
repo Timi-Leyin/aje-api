@@ -1,6 +1,7 @@
 import {
   file,
   LISTING_TYPE,
+  Prisma,
   PRODUCT_TYPE,
   PROPERTY_STATUS,
   specifications,
@@ -28,10 +29,12 @@ interface getPropertiesParams {
     bathroom?: string | number;
     bedroom?: string | number;
     tag?: string;
+    marketplace?: string;
   };
 
   filters?: {
     by?: FILTERED;
+    listingType?: "Rent" | "Sale" | "Shotlet" | "Hotel";
     value?: string | number | boolean;
   };
 }
@@ -43,9 +46,36 @@ const getProperties = async ({
   where,
   filters,
 }: getPropertiesParams) => {
-  const filterConditions = {
+  const marketplace = Boolean(where?.marketplace == "true");
+  console.log(marketplace, "marketplace");
+  const filterConditions: Prisma.propertyWhereInput = {
     userId: where?.agentId,
     title: where?.title ? { contains: where.title } : undefined,
+    OR: [
+      {
+        tags: where?.listingType
+          ? {
+              some: { name: { contains: where?.listingType } },
+            }
+          : undefined,
+      },
+      {
+        tags: {
+          some: { name: { contains: where?.title } },
+        },
+      },
+      {
+        description: {
+          contains: where?.title,
+        },
+      },
+      {
+        listingType: filters?.listingType?.toLocaleUpperCase() as LISTING_TYPE,
+      },
+    ],
+    marketplace: {
+      equals: marketplace,
+    },
     type: where?.type,
     // price:
     //   where?.minPrice && where?.maxPrice
@@ -53,7 +83,7 @@ const getProperties = async ({
     //     : undefined,
     // hasLegalDocuments: where?.hasLegalDocuments,
     tags:
-      filters && filters?.by == "tags"
+      filters && filters?.by == "tags" && filters.value
         ? { some: { name: { contains: filters.value as string } } }
         : where && where.tag
         ? {
@@ -65,7 +95,6 @@ const getProperties = async ({
           }
         : undefined,
 
-    // listingType: where?.listingType,
     // status: where?.status,
     specifications:
       where && (where.bathroom || where.bedroom)
@@ -84,7 +113,7 @@ const getProperties = async ({
         : undefined,
   };
 
-  logger(where);
+  // logger(where);
   const all = await db.property.count({
     where: filterConditions,
   });
@@ -201,6 +230,7 @@ const createProperties = async ({
       title,
       description,
       type,
+      marketplace: type == "PRODUCT" ? true : false,
       listingType: listingType.toUpperCase() as LISTING_TYPE,
       address: {
         create: {

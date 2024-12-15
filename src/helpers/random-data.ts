@@ -86,7 +86,7 @@ export const createRandomProperty = async () => {
       lotSize: null,
       squareFeet: null,
     },
-    userId: "cm3d55tl40003q3frg4idxeh2",
+    userId: "cm3n0kqwo00033dk27t16ampi",
   });
 };
 

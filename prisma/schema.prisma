@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -122,7 +122,7 @@ model restriction {
   uuid String @id @unique @default(cuid())
 
   restricted Boolean  @default(false)
-  reason     String   @db.LongText
+  reason     String   @db.Char()
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   user       user[]
@@ -134,7 +134,9 @@ model user {
   firstName    String?
   lastName     String?
   phone        String?
+  skills       String?
   bio          String?
+  gallery      file[]        @relation("gallery")
   business     businessInfo? @relation(fields: [businessInfoId], references: [uuid])
   gender       GENDER?
   type         USER_TYPE     @default(BUYER)
@@ -181,6 +183,8 @@ model file {
   propertyId    String?
   propertyVideo property[]     @relation("videoTour")
   businessInfo  businessInfo[]
+  artisan       user?          @relation("gallery", fields: [artisanId], references: [uuid])
+  artisanId     String?
 }
 
 model password {
@@ -311,13 +315,15 @@ model reviews {
 }
 
 model property {
-  id      Int      @unique @default(autoincrement())
-  uuid    String   @id @unique @default(cuid())
-  agent   user     @relation(fields: [userId], references: [uuid])
-  price   Decimal
-  address address? @relation(fields: [addressId], references: [uuid])
+  id          Int      @unique @default(autoincrement())
+  uuid        String   @id @unique @default(cuid())
+  marketplace Boolean  @default(false)
+  agent       user     @relation(fields: [userId], references: [uuid])
+  price       Decimal
+  address     address? @relation(fields: [addressId], references: [uuid])
 
-  type PRODUCT_TYPE @default(PROPERTY)
+  phone String?
+  type  PRODUCT_TYPE @default(PROPERTY)
 
   specifications    specifications? @relation(fields: [specificationsId], references: [uuid])
   hasLegalDocuments Boolean         @default(false)
@@ -331,7 +337,7 @@ model property {
   currency CURRENCY @default(NGN)
   tags     tag[]
 
-  description String? @db.LongText
+  description String? @db.Char()
 
   propertyType propertyType[] // commercial,  appartment,  etc
 

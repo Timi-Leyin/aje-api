@@ -10,8 +10,11 @@ export const ROUTES = {
   SUBSCRIBE: "/subscribe",
   CANCEL: "/cancel",
   PRODUCT_ID: "/:productId",
+  UPLOAD_GALLERY: "/upload-gallery",
   SUBROUTES: {
     AUTH: "/auth",
+    ARTISAN: "/artisan",
+    MARKETPLACE:"/marketplace",
     REVIEWS: "/reviews",
     SUBSCRIPTION: "/subscription",
     PROFILE: "/profile",

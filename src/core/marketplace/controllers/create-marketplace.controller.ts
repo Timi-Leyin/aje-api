@@ -1,31 +1,15 @@
 import { Request, Response } from "express";
 import errorHandler from "../../../helpers/error-handler";
 import responseObject from "../../../helpers/response-object";
-import logger from "../../../helpers/logger";
-import fileUploader, { bulkFileUploader } from "../../../helpers/file-uploader";
-import propertyService from "../property.service";
-import { createPropertyDTO } from "../property.dto";
+import { bulkFileUploader } from "../../../helpers/file-uploader";
+import { createMarketplace } from "../marketplace.dto";
+import marketplaceService from "../marketplace.service";
 
 export default async (req: Request, res: Response) => {
   try {
-    const {
-      description,
-      title,
-      tags,
-      videoTour,
-      price,
-      listingType,
-      type,
-      yearBuilt,
-      squareFeet,
-      bedrooms,
-      bathrooms,
-      address,
-      latitude,
-      longitude,
-    } = req.body as createPropertyDTO;
+    const { description, name, price, address, phoneNumber } = req.body as createMarketplace;
 
-    // @ts-ignore
+    // @ts-ignoreaddress
     if (
       !req.files ||
       // @ts-ignore
@@ -47,8 +31,6 @@ export default async (req: Request, res: Response) => {
     }
 
     // @ts-ignore
-    const userType = req.user.type;
-    // @ts-ignore
     const images = req.files && (req.files.images || []);
 
     const uploadImages = await bulkFileUploader(
@@ -63,37 +45,21 @@ export default async (req: Request, res: Response) => {
       );
     }
 
-    const property = await propertyService.createProperties({
+    const marketplace = await marketplaceService.createMarketplace({
       // @ts-ignore
       userId: req.user.uuid,
       description,
-      title,
-      listingType,
-      address,
-      latitude,
-      longitude,
-      videoTour,
+      name,
       price,
-      type:
-        userType == "AGENT"
-          ? "PROPERTY"
-          : userType == "VENDOR"
-          ? "PRODUCT"
-          : "SERVICES",
+      address,
+      phone:phoneNumber,
       images: uploadImages,
-      tags,
-      specifications: {
-        yearBuilt: String(yearBuilt),
-        bathrooms: Number(bathrooms),
-        bedrooms: Number(bedrooms),
-        squareFeet: String(squareFeet),
-      },
     });
 
     return res.status(201).json(
       responseObject({
-        message: "Property created",
-        data: property,
+        message: "Marketplace created",
+        data: marketplace,
       })
     );
   } catch (error) {
