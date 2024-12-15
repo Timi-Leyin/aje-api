@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -122,7 +122,7 @@ model restriction {
   uuid String @id @unique @default(cuid())
 
   restricted Boolean  @default(false)
-  reason     String   @db.Char()
+  reason     String   @db.VarChar(255)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   user       user[]
@@ -337,7 +337,7 @@ model property {
   currency CURRENCY @default(NGN)
   tags     tag[]
 
-  description String? @db.Char()
+  description String? @db.VarChar(255)
 
   propertyType propertyType[] // commercial,  appartment,  etc
 
