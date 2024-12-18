@@ -10,6 +10,7 @@ import { AUTH_PROVIDER, USER_TYPE } from "@prisma/client";
 import { userService } from "../../users/users.service";
 import logger from "../../../helpers/logger";
 import fileUploader from "../../../helpers/file-uploader";
+import { sendEmailToAdmin } from "../../../helpers/send-email";
 export default async (req: Request, res: Response) => {
   try {
     // TOO [] CHOOSE USER TYPE
@@ -46,7 +47,7 @@ export default async (req: Request, res: Response) => {
     let uploadCacDoc;
     // Upload files if available
     // @ts-ignore
-    if (req.files["profilePhoto"]) {
+    if (req.files?.["profilePhoto"]) {
       uploadProfile = await fileUploader({
         // @ts-ignore
         src: req.files["profilePhoto"][0].path,
@@ -54,7 +55,7 @@ export default async (req: Request, res: Response) => {
     }
 
     // @ts-ignore
-    if (req.files["govtId"]) {
+    if (req.files?.["govtId"]) {
       uploadGovtId = await fileUploader({
         // @ts-ignore
         src: req.files["govtId"][0].path,
@@ -62,14 +63,13 @@ export default async (req: Request, res: Response) => {
     }
 
     // @ts-ignore
-    if (req.files["cacDoc"]) {
+    if (req.files?.["cacDoc"]) {
       uploadCacDoc = await fileUploader({
         // @ts-ignore
         src: req.files["cacDoc"][0].path,
       });
     }
 
-    logger(uploadGovtId);
     const businessOwned = USER != "BUYER";
 
     const user = await userService.createUser({
@@ -133,6 +133,23 @@ export default async (req: Request, res: Response) => {
       id: user.uuid,
     };
     const token = await generateToken(payload);
+
+    await sendEmailToAdmin({
+      subject: `A new user has been registered as ${user.type}`,
+      html: `
+        Hello Admin,
+    
+        A new user has registered on your platform with the following details:
+        Email: ${user.email}
+        Type: ${user.type}
+        Registration Date: ${new Date().toLocaleString()}
+    
+        Please review the registration in the admin panel to verify user.
+    
+        This is an automated notification. Do not reply to this email.
+      `,
+    });
+
     return res.status(201).json(
       responseObject({
         message: "Registered successfully",
@@ -140,6 +157,7 @@ export default async (req: Request, res: Response) => {
       })
     );
   } catch (error) {
+    logger(error)
     return errorHandler(res, error);
   }
 };

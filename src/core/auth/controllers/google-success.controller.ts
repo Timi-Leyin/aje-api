@@ -6,6 +6,7 @@ import { AUTH_PROVIDER, PROVIDER, user } from "@prisma/client";
 import { user as PrismaUser } from "@prisma/client";
 import { generateToken } from "../../../helpers/token";
 import { ENV } from "../../../constants/env";
+import { sendEmailToAdmin } from "../../../helpers/send-email";
 export default async (req: Request, res: Response) => {
   try {
     // TODO [] add error message to query params of redirect
@@ -40,6 +41,23 @@ export default async (req: Request, res: Response) => {
               },
             }
           : undefined,
+      });
+
+      await sendEmailToAdmin({
+        subject: `A new user has been registered as ${userDB.type}`,
+        html: `
+              Hello Admin,
+          
+              A new user has registered on your platform with the following details:
+              Email: ${userDB.email}
+              Type: ${userDB.type}
+              Provider: Google
+              Registration Date: ${new Date().toLocaleString()}
+          
+              Please review the registration in the admin panel to verify user.
+          
+              This is an automated notification. Do not reply to this email.
+            `,
       });
     }
 
