@@ -40,6 +40,22 @@ export const paystackWebhook = async (req: Request, res: Response) => {
 
       if (transaction.paidAt && transaction.sub && transaction.sub.ref) {
         // logger(event.data);
+
+        await db.transaction.update({
+          where: {
+            uuid: transaction.uuid,
+          },
+          data: {
+            paidAt: new Date(event.data.paid_at || new Date()).toISOString(),
+            fee: event?.data?.fees ? Number(event.data.fees) : undefined,
+            // sub:{
+            //   update:{
+
+            //   }
+            // },
+          },
+        });
+
         logger("Already Paid");
         return res.status(200);
       }

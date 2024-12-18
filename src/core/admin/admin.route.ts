@@ -13,6 +13,6 @@ const adminRoutes = Router();
 adminRoutes.post("/login", adminLoginController);
 adminRoutes.get("/users", authGuard, isAdmin, adminGetUsersController);
 adminRoutes.get("/", authGuard, isAdmin, adminProfileController);
-adminRoutes.get("/verification", authGuard, isAdmin,verifyUserSchema, bodyValidation, adminVerifyUser);
+adminRoutes.post("/verification", authGuard, isAdmin,verifyUserSchema, bodyValidation, adminVerifyUser);
 
 export default adminRoutes;
