@@ -7,18 +7,21 @@ import { user as PrismaUser } from "@prisma/client";
 import { generateToken } from "../../../helpers/token";
 import { ENV } from "../../../constants/env";
 import { sendEmailToAdmin } from "../../../helpers/send-email";
+import { FRONTEND_FAILURE_REDIRECT } from "../../../constants";
+
+const FAILED_URL = `${ENV.BACKEND_URL}${FRONTEND_FAILURE_REDIRECT}`
 export default async (req: Request, res: Response) => {
   try {
     // TODO [] add error message to query params of redirect
     const user = req.user as any as Profile;
     if (!user) {
-      return res.redirect("/api/auth/google/callback/failure");
+      return res.redirect(FAILED_URL);
     }
 
     const email = user.emails && user.emails.length > 0 && user.emails[0].value;
 
     if (!email) {
-      return res.redirect("/api/auth/google/callback/failure");
+      return res.redirect(FAILED_URL);
     }
 
     const checkUser = await userService.checkUserEmail(email as string, {});
@@ -64,7 +67,7 @@ export default async (req: Request, res: Response) => {
     userDB = checkUser as PrismaUser;
 
     if (!userDB) {
-      return res.redirect("/api/auth/google/callback/failure");
+      return res.redirect(FAILED_URL);
     }
 
     // generate token
