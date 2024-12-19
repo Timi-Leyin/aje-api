@@ -19,6 +19,7 @@ import {
 import googleSuccessController from "./controllers/google-success.controller";
 import googleFailureController from "./controllers/google-failure.controller";
 import { multerUpload } from "../../config/multer";
+import { ENV } from "../../constants/env";
 
 const authRoute = Router();
 
@@ -30,8 +31,8 @@ authRoute.get(
 authRoute.get(
   ROUTES.GOOGLE_AUTH_CALLBACK,
   passport.authenticate("google", {
-    successRedirect: FRONTEND_SUCCESS_REDIRECT,
-    failureRedirect: FRONTEND_FAILURE_REDIRECT,
+    successRedirect: `${ENV.BACKEND_URL}${FRONTEND_SUCCESS_REDIRECT}`,
+    failureRedirect: `${ENV.BACKEND_URL}${FRONTEND_FAILURE_REDIRECT}`,
   })
 );
 
