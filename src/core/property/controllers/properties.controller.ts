@@ -39,7 +39,7 @@ export default async (req: Request, res: Response) => {
       page,
 
       where: {
-        title: query,
+        title: query||"",
         type,
         marketplace,
         bathroom,
