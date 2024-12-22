@@ -24,8 +24,8 @@ export default async (req: Request, res: Response) => {
       latitude,
       longitude,
     } = req.body as createPropertyDTO;
-console.log(price)
-console.log(req.body)
+    console.log(price);
+    console.log(req.body);
     // @ts-ignore
     if (
       !req.files ||
@@ -80,7 +80,7 @@ console.log(req.body)
           ? "PROPERTY"
           : userType == "VENDOR"
           ? "PRODUCT"
-          : "SERVICES",
+          : type,
       images: uploadImages,
       tags,
       specifications: {
@@ -98,7 +98,7 @@ console.log(req.body)
       })
     );
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return errorHandler(res, error);
   }
 };
