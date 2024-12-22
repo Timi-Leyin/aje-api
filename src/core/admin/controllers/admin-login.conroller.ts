@@ -46,6 +46,7 @@ export const adminLoginController = async (req: Request, res: Response) => {
       })
     );
   } catch (error) {
+    console.log(error)
     return errorHandler(res, error);
   }
 };
