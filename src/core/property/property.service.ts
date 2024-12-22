@@ -47,7 +47,7 @@ const getProperties = async ({
   filters,
 }: getPropertiesParams) => {
   const marketplace = Boolean(where?.marketplace == "true");
-  console.log(marketplace, "marketplace");
+  console.log(await db.property.count(), "PT");
   const filterConditions: Prisma.propertyWhereInput = {
     userId: where?.agentId,
     title: where?.title ? { contains: where.title } : undefined,
