@@ -24,6 +24,7 @@ import reviewsRoutes from "./core/reviews/reviews.route";
 import artisanRoutes from "./core/artisans/artisan.routes";
 import marketplaceRoute from "./core/marketplace/marketplace.roues";
 import adminRoutes from "./core/admin/admin.route";
+import adsRouter from "./core/ad/ad.route";
 
 // import { multipleProperty } from "./helpers/random-data";
 // multipleProperty()
@@ -62,6 +63,7 @@ apiRoutes.use(ROUTES.SUBROUTES.SUBSCRIPTION, authGuard, subscriptionRoutes);
 apiRoutes.use(ROUTES.SUBROUTES.PAYSTACK_WEBHOOK, paystackWebhook);
 apiRoutes.use(ROUTES.SUBROUTES.MARKETPLACE, marketplaceRoute);
 apiRoutes.use(ROUTES.SUBROUTES.ADMIN, adminRoutes);
+apiRoutes.use(ROUTES.SUBROUTES.AD, adsRouter);
 apiRoutes.use("/test", testsRoute);
 // DO NOT TOUCH >>>>>>>>
 app.get(ROUTES.BASE, defaultMiddleware);

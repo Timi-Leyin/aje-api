@@ -185,6 +185,7 @@ model file {
   businessInfo  businessInfo[]
   artisan       user?          @relation("gallery", fields: [artisanId], references: [uuid])
   artisanId     String?
+  ads            ad[]
 }
 
 model password {
@@ -211,6 +212,8 @@ model propertyType {
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 }
+
+
 
 model subscription {
   id      Int                @unique @default(autoincrement())
@@ -350,4 +353,20 @@ model property {
   userId           String
   specificationsId String?
   addressId        String?
+}
+
+model ad {
+  id   Int    @unique @default(autoincrement())
+  uuid String @id @unique @default(cuid())
+
+  title       String
+  description String?
+
+  link String?
+
+  image file? @relation(fields: [fileId], references: [uuid])
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  fileId    String?
 }

@@ -20,6 +20,7 @@ export const ROUTES = {
     PROFILE: "/profile",
     ARTIST: "/artist",
     ADMIN: "/admin",
+    AD: "/ad",
     PROPERTY: "/property",
     ARTWORK: "/artwork",
     PAYSTACK_WEBHOOK: "/paystack/webhook",

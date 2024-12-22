@@ -11,4 +11,4 @@ export const FRONTEND_SUCCESS_REDIRECT = "/api/auth/google/callback/success";
 export const FRONTEND_FAILURE_REDIRECT = "/api/auth/google/callback/failure";
 
 
-export const UPLOAD_LOCAL = true
+export const UPLOAD_LOCAL = false

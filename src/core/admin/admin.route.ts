@@ -5,11 +5,17 @@ import authGuard from "../../middlewares/auth-guard";
 import isAdmin from "../../middlewares/is-admin";
 import adminGetUsersController from "./controllers/admin-get-users-controller";
 import adminVerifyUser from "./controllers/adminVerifyUser";
-import { sendEmailSchema, verifyUserSchema } from "../../schemas/admin.schema";
+import {
+  createAdSchema,
+  sendEmailSchema,
+  verifyUserSchema,
+} from "../../schemas/admin.schema";
 import bodyValidation from "../../middlewares/body-validation";
 import sendMessages from "./controllers/send-messages";
 import { loginSchema } from "../../schemas/auth.schema";
 import createAd from "./controllers/create-ad";
+import { multerUpload } from "../../config/multer";
+import deleteAds from "./controllers/deleteAds";
 
 const adminRoutes = Router();
 
@@ -32,13 +38,18 @@ adminRoutes.post(
   bodyValidation,
   sendMessages
 );
+
+const upload = multerUpload.single("image");
+
 adminRoutes.post(
-  "/ads",
+  "/ad",
   authGuard,
   isAdmin,
-  sendEmailSchema,
+  upload,
+  createAdSchema,
   bodyValidation,
   createAd
 );
+adminRoutes.delete("/ad/:id", authGuard, isAdmin, deleteAds);
 
 export default adminRoutes;

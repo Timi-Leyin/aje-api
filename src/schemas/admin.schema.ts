@@ -23,3 +23,19 @@ export const sendEmailSchema = [
     .isLength({ min: 3 })
     .withMessage("subject must be more 3"),
 ];
+
+export const createAdSchema = [
+  body("title")
+    .trim()
+    .isString()
+    .withMessage("title is Required")
+    .isLength({ min: 3 })
+    .withMessage("title must be more 3"),
+
+  body("description")
+    .trim()
+    .isString()
+    .withMessage("description is Required")
+    .isLength({ min: 3 })
+    .withMessage("description must be more 3"),
+];
