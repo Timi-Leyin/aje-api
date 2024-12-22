@@ -24,7 +24,7 @@ export default async (req: Request, res: Response) => {
     }
 
     await sendEmail({
-      html: "",
+      html: `Your OTP for password reset is: ${createdOTP}`,
       subject: "Password Reset Requested",
       to: email,
     }).catch(logger);

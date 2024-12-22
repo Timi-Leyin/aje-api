@@ -142,7 +142,7 @@ const generateOtp = async (email: string) => {
     },
   });
 
-  return true;
+  return otp;
 };
 
 export const userService = {
