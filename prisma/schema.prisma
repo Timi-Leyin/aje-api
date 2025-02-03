@@ -340,7 +340,7 @@ model property {
   currency CURRENCY @default(NGN)
   tags     tag[]
 
-  description String? @db.VarChar(255)
+  description String? @db.LongText
 
   propertyType propertyType[] // commercial,  appartment,  etc
 
