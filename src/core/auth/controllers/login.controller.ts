@@ -6,6 +6,7 @@ import { LoginDTO } from "../auth.dto";
 import { AccountNotFound, useProviderForAuth } from "../..";
 import { comaparePassword } from "../../../helpers/password";
 import { userService } from "../../users/users.service";
+import logger from "../../../helpers/logger";
 
 export default async (req: Request, res: Response) => {
   try {
@@ -23,7 +24,7 @@ export default async (req: Request, res: Response) => {
     }
 
     // match password
-    const passwordMatch = comaparePassword(password, user.password?.content);
+    const passwordMatch = await comaparePassword(password, user.password?.content);
 
     if (!passwordMatch) {
       return AccountNotFound(res);
@@ -34,7 +35,7 @@ export default async (req: Request, res: Response) => {
       id: user.uuid,
     };
     const token = await generateToken(payload);
-    return res.status(201).json(
+    return res.status(200).json(
       responseObject({
         message: "Login successfully",
         accessToken: token,

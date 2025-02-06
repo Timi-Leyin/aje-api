@@ -13,15 +13,17 @@ const FAILED_URL = `${ENV.BACKEND_URL}${FRONTEND_FAILURE_REDIRECT}`
 export default async (req: Request, res: Response) => {
   try {
     // TODO [] add error message to query params of redirect
-    const user = req.user as any as Profile;
+    const user = req?.user as any as Profile;
+    const TRY_AGAIN = `${ENV.BACKEND_URL}/api/auth/google?mode=retry`
+    // console.log(user)
     if (!user) {
-      return res.redirect(FAILED_URL);
+      return res.redirect(TRY_AGAIN);
     }
 
-    const email = user.emails && user.emails.length > 0 && user.emails[0].value;
+    const email = user?.emails?.[0]?.value;
 
     if (!email) {
-      return res.redirect(FAILED_URL);
+      return res.redirect(TRY_AGAIN);
     }
 
     const checkUser = await userService.checkUserEmail(email as string, {});
