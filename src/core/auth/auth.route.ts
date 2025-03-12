@@ -23,6 +23,9 @@ import { ENV } from "../../constants/env";
 
 const authRoute = Router();
 
+authRoute.post(ROUTES.LOGIN, loginSchema, bodyValidation, loginController);
+
+
 authRoute.get(
   ROUTES.GOOGLE_AUTH,
   passport.authenticate("google", { scope: ["profile", "email"] })
@@ -53,7 +56,6 @@ authRoute.post(
   registerController
 );
 
-authRoute.post(ROUTES.LOGIN, loginSchema, bodyValidation, loginController);
 
 authRoute.post(
   ROUTES.FORGOTTEN_PASSWORD,
