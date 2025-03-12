@@ -1,5 +1,6 @@
 import express, { Router } from "express";
 const app = express();
+import "./config/passport";
 import cors from "cors";
 import morgan from "morgan";
 import { defaultMiddleware, errorMiddleware, notFoundMiddleware } from "./core";
@@ -9,7 +10,6 @@ import authRoute from "./core/auth/auth.route";
 import { CWD } from "./constants";
 import session from "express-session";
 import path from "path";
-import "./config/passport";
 import { engine } from "express-handlebars";
 import { ENV } from "./constants/env";
 
