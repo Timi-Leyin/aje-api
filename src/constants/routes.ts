@@ -31,6 +31,7 @@ export const ROUTES = {
   // AUTH
   LOGIN: "/login",
   REGISTER: "/register",
+  CHECK_EMAIL: "/check-email",
   GOOGLE_AUTH: "/google",
   GOOGLE_AUTH_CALLBACK: "/google/callback",
   GOOGLE_AUTH_CALLBACK_SUCCESS: "/google/callback/success",

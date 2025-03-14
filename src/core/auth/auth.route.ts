@@ -20,11 +20,11 @@ import googleSuccessController from "./controllers/google-success.controller";
 import googleFailureController from "./controllers/google-failure.controller";
 import { multerUpload } from "../../config/multer";
 import { ENV } from "../../constants/env";
+import checkEmailController from "./controllers/check-email.controller";
 
 const authRoute = Router();
 
 authRoute.post(ROUTES.LOGIN, loginSchema, bodyValidation, loginController);
-
 
 authRoute.get(
   ROUTES.GOOGLE_AUTH,
@@ -48,6 +48,7 @@ const registerationUpload = multerUpload.fields([
   { name: "profilePhoto", maxCount: 1 },
 ]);
 // registration
+authRoute.get(ROUTES.CHECK_EMAIL, checkEmailController);
 authRoute.post(
   ROUTES.REGISTER,
   registerationUpload,
@@ -56,13 +57,13 @@ authRoute.post(
   registerController
 );
 
-
 authRoute.post(
   ROUTES.FORGOTTEN_PASSWORD,
   forgottenPasswordSchema,
   bodyValidation,
   forgottenPasswordController
 );
+
 authRoute.post(
   ROUTES.VERIFY_FORGOTTEN_PASSWORD,
   verifyOtpSchema,
