@@ -32,6 +32,8 @@ export const ROUTES = {
   LOGIN: "/login",
   REGISTER: "/register",
   CHECK_EMAIL: "/check-email",
+  SEND_OTP: "/send-otp-email",
+  VERIFY_OTP: "/verify-otp-email",
   GOOGLE_AUTH: "/google",
   GOOGLE_AUTH_CALLBACK: "/google/callback",
   GOOGLE_AUTH_CALLBACK_SUCCESS: "/google/callback/success",

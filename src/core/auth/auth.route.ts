@@ -5,6 +5,8 @@ import {
   forgottenPasswordSchema,
   loginSchema,
   registerSchema,
+  verifyEmailOtpSchema,
+  verifyEmailSchema,
   verifyOtpSchema,
 } from "../../schemas/auth.schema";
 import bodyValidation from "../../middlewares/body-validation";
@@ -21,6 +23,8 @@ import googleFailureController from "./controllers/google-failure.controller";
 import { multerUpload } from "../../config/multer";
 import { ENV } from "../../constants/env";
 import checkEmailController from "./controllers/check-email.controller";
+import sendOtpController from "./controllers/send-otp.controller";
+import verifyEmailOtpController from "./controllers/verify-email-otp.controller";
 
 const authRoute = Router();
 
@@ -49,12 +53,27 @@ const registerationUpload = multerUpload.fields([
 ]);
 // registration
 authRoute.get(ROUTES.CHECK_EMAIL, checkEmailController);
+
 authRoute.post(
   ROUTES.REGISTER,
   registerationUpload,
   registerSchema,
   bodyValidation,
   registerController
+);
+
+authRoute.post(
+  ROUTES.SEND_OTP,
+  verifyEmailSchema,
+  bodyValidation,
+  sendOtpController
+);
+
+authRoute.post(
+  ROUTES.VERIFY_OTP,
+  verifyEmailOtpSchema,
+  bodyValidation,
+  verifyEmailOtpController
 );
 
 authRoute.post(
