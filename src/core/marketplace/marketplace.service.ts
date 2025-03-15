@@ -9,6 +9,7 @@ interface createParams {
   address: string;
   images: file[];
   phone: string;
+  moreInfo?:string
 }
 
 const createMarketplace = async ({
@@ -19,6 +20,7 @@ const createMarketplace = async ({
   name,
   price,
   userId,
+  moreInfo
 }: createParams) => {
   const property = await db.property.create({
     data: {
@@ -26,6 +28,7 @@ const createMarketplace = async ({
       description,
       listingType: "SALE",
       type:"PRODUCT",
+      moreInfo,
       address: {
         create: {
           address: String(address),

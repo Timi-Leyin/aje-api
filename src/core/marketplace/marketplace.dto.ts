@@ -4,4 +4,5 @@ export interface createMarketplace {
   description: string;
   phoneNumber: string;
   address: string;
+  moreInfo?:string;
 }

@@ -7,7 +7,8 @@ import marketplaceService from "../marketplace.service";
 
 export default async (req: Request, res: Response) => {
   try {
-    const { description, name, price, address, phoneNumber } = req.body as createMarketplace;
+    const { description, name, price, address, phoneNumber, moreInfo } =
+      req.body as createMarketplace;
 
     // @ts-ignoreaddress
     if (
@@ -52,13 +53,14 @@ export default async (req: Request, res: Response) => {
       name,
       price,
       address,
-      phone:phoneNumber,
+      phone: phoneNumber,
       images: uploadImages,
+      moreInfo,
     });
 
     return res.status(201).json(
       responseObject({
-        message: "Marketplace created",
+        message: "Marketplace Created",
         data: marketplace,
       })
     );
