@@ -327,6 +327,7 @@ model property {
 
   phone String?
   type  PRODUCT_TYPE @default(PROPERTY)
+  moreInfo String? @db.LongText
 
   specifications    specifications? @relation(fields: [specificationsId], references: [uuid])
   hasLegalDocuments Boolean         @default(false)
