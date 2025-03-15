@@ -8,7 +8,7 @@ import nodemailer from "nodemailer";
 export default async (mailOptions: MailOptions) => {
   emailTransporter.sendMail(
     {
-      from: "noreply@aje-home-properties",
+      from: "noreply@illumiacityempire.com",
       ...mailOptions,
     },
     (error, info) => {
