@@ -3,27 +3,21 @@ import errorHandler from "../../../helpers/error-handler";
 import { getPaginaionParams } from "../../../helpers/paginition";
 import propertyService from "../property.service";
 import responseObject from "../../../helpers/response-object";
+import { db } from "../../../config/database";
 
 export default async (req: Request, res: Response) => {
   try {
-    const { marketplace } = req.query;
-    const { limit, offset, page } = getPaginaionParams(req);
+    const { id } = req.params;
 
-    const properties = await propertyService.getProperties({
-      limit,
-      offset,
-      page,
+    await db.property.delete({
       where: {
-        // @ts-ignore
-        agentId: req.user.uuid,
-        marketplace: String(marketplace),
+        uuid: id,
       },
     });
 
     return res.status(200).json(
       responseObject({
-        message: "My Properties Retrieved",
-        data: properties,
+        message: "Deleted",
       })
     );
   } catch (error) {
