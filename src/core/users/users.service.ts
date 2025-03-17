@@ -21,7 +21,7 @@ interface UpdateUser {
   bio?: string;
   phone?: string;
   gender?: GENDER;
-  skills?:string;
+  skills?: string;
 }
 const updateUser = async (email: string, data: UpdateUser) => {
   return db.user.update({
@@ -107,8 +107,36 @@ const compareOtp = async (otp: string, email: string) => {
       },
     });
   }
+
   return compare;
 };
+
+// SKIP CHEKS
+// const _compareOtp = async (otp: string, email: string) => {
+//   const existingOtp = await findOtp(email);
+//   if (!existingOtp) {
+//     return false;
+//   }
+
+//   const isExpired = checkExpiration(
+//     existingOtp.expiresIn,
+//     existingOtp.createdAt
+//   );
+//   if (isExpired) {
+//     return false;
+//   }
+//   const compare = await comaparePassword(otp, existingOtp?.code || "");
+
+//   if (compare) {
+//     await db.otp.delete({
+//       where: {
+//         uuid: existingOtp.uuid,
+//       },
+//     });
+//   }
+
+//   return compare;
+// };
 
 const generateOtp = async (email: string) => {
   // check if otp  is already generated for this email
@@ -145,6 +173,34 @@ const generateOtp = async (email: string) => {
   return otp;
 };
 
+// GENERATE WITHOUT CHECKS
+const _generateOtp = async (email: string) => {
+  // DELETE PREVIOUSS
+  await db.otp.deleteMany({
+    where: {
+      email,
+    },
+  });
+  
+  const otp = otpGenerator.generate(6, {
+    digits: true,
+    lowerCaseAlphabets: false,
+    specialChars: false,
+    upperCaseAlphabets: false,
+  });
+  logger("[CODE]", otp);
+  const code = await hashPassword(otp);
+  const newOTP = await db.otp.create({
+    data: {
+      code,
+      email,
+      expiresIn: "5m",
+    },
+  });
+
+  return otp;
+};
+
 export const userService = {
   checkUserEmail,
   createUser,
@@ -152,5 +208,6 @@ export const userService = {
   updateUser,
   // otp
   generateOtp,
+  _generateOtp,
   compareOtp,
 };

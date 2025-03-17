@@ -36,6 +36,13 @@ export const registerSchema = [
     ),
 ];
 
+export const verifyEmailSchema = [body("email").isString().trim().isEmail()];
+
+export const verifyEmailOtpSchema = [
+  body("email").isString().trim().isEmail(),
+  body("otp").isString().trim().isLength({ min: 6 }),
+];
+
 export const loginSchema = [
   body("email").isString().trim().isEmail(),
   body("password").isString().trim().isLength({

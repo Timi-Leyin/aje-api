@@ -45,14 +45,39 @@ export default async (req: Request, res: Response, next: NextFunction) => {
       return NoSubscriptionResponse(res);
     }
 
-    // if (subscription?.type == "FREE" && countProperty >= 3) {
-    //   return res.status(400).json(
-    //     responseObject({
-    //       message:
-    //         "subscription Limit Exceeded for this month, please upgrade for more",
-    //     })
-    //   );
-    // }
+    if (subscription?.type == "FREE" && countProperty >= 1) {
+      return res.status(400).json(
+        responseObject({
+          message:
+            "subscription Limit Exceeded for this month, please upgrade for more",
+        })
+      );
+    }
+    if (subscription?.type == "BASIC" && countProperty >= 5) {
+      return res.status(400).json(
+        responseObject({
+          message:
+            "subscription Limit Exceeded for this month, please upgrade for more",
+        })
+      );
+    }
+
+    if (subscription?.type == "GOLD" && countProperty >= 20) {
+      return res.status(400).json(
+        responseObject({
+          message:
+            "subscription Limit Exceeded for this month, please upgrade for more",
+        })
+      );
+    }
+    if (subscription?.type == "PREMIUM" && countProperty >= 50) {
+      return res.status(400).json(
+        responseObject({
+          message:
+            "subscription Limit Exceeded for this month, please upgrade for more",
+        })
+      );
+    }
 
     return next();
   } catch (error) {
