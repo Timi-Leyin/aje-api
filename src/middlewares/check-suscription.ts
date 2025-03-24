@@ -22,6 +22,11 @@ export default async (req: Request, res: Response, next: NextFunction) => {
       );
     }
 
+    // @ts-ignore
+    if (user.type == "ADMIN") {
+      return next();
+    }
+
     if (!subId) {
       return NoSubscriptionResponse(res);
     }
@@ -53,6 +58,7 @@ export default async (req: Request, res: Response, next: NextFunction) => {
         })
       );
     }
+
     if (subscription?.type == "BASIC" && countProperty >= 5) {
       return res.status(400).json(
         responseObject({
@@ -70,6 +76,7 @@ export default async (req: Request, res: Response, next: NextFunction) => {
         })
       );
     }
+
     if (subscription?.type == "PREMIUM" && countProperty >= 50) {
       return res.status(400).json(
         responseObject({
