@@ -16,6 +16,8 @@ import { loginSchema } from "../../schemas/auth.schema";
 import createAd from "./controllers/create-ad";
 import { multerUpload } from "../../config/multer";
 import deleteAds from "./controllers/deleteAds";
+import { ROUTES } from "../../constants/routes";
+import adminEditProperty from "./controllers/admin-edit-property";
 
 const adminRoutes = Router();
 
@@ -51,5 +53,7 @@ adminRoutes.post(
   createAd
 );
 adminRoutes.delete("/ad/:id", authGuard, isAdmin, deleteAds);
+
+adminRoutes.put("/property", authGuard, isAdmin, upload, adminEditProperty);
 
 export default adminRoutes;
