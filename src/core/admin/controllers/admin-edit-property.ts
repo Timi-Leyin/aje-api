@@ -5,6 +5,7 @@ import responseObject from "../../../helpers/response-object";
 import { PROPERTY_STATUS } from "@prisma/client";
 import { createPropertyDTO } from "../../property/property.dto";
 import propertyService from "../../property/property.service";
+import logger from "../../../helpers/logger";
 
 export default async (req: Request, res: Response) => {
   try {
@@ -41,7 +42,7 @@ export default async (req: Request, res: Response) => {
       listingType,
       address,
       propertyId,
-      status: status.toUpperCase() as PROPERTY_STATUS,
+      status: (status||"AVAILABLE").toUpperCase() as PROPERTY_STATUS,
       videoTour,
       price,
       specifications: {
@@ -52,14 +53,14 @@ export default async (req: Request, res: Response) => {
       },
     });
 
-    return res.status(201).json(
+    return res.status(200).json(
       responseObject({
         message: "Property updated",
         data: property,
       })
     );
   } catch (error) {
-    // logger(error)
+    logger(error)
     return errorHandler(res, error);
   }
 };
