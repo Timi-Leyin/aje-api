@@ -54,6 +54,6 @@ adminRoutes.post(
 );
 adminRoutes.delete("/ad/:id", authGuard, isAdmin, deleteAds);
 
-adminRoutes.put("/property", authGuard, isAdmin, upload, adminEditProperty);
+adminRoutes.put("/property", authGuard, isAdmin, adminEditProperty);
 
 export default adminRoutes;
