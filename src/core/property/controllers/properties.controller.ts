@@ -11,6 +11,8 @@ type QueryParams = {
   query: string;
   type: PRODUCT_TYPE;
   filterdBy?: FILTERED;
+  min?: number;
+  max?: number;
   filterValue?: string;
   tag?: string;
   marketplace?: string;
@@ -28,6 +30,8 @@ export default async (req: Request, res: Response) => {
       filterValue,
       filterdBy,
       bathroom,
+      min,
+      max,
       bedroom,
       tag,
       listingType,
@@ -39,9 +43,11 @@ export default async (req: Request, res: Response) => {
       page,
 
       where: {
-        title: query||"",
+        title: query || "",
         type,
         marketplace,
+        maxPrice: Number(max),
+        minPrice: Number(min),
         bathroom,
         bedroom,
         tag,

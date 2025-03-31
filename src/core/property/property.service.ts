@@ -46,8 +46,9 @@ const getProperties = async ({
   where,
   filters,
 }: getPropertiesParams) => {
+  console.log(where?.maxPrice);
   const marketplace = Boolean(where?.marketplace == "true");
-  console.log(await db.property.count(), "PT");
+  // console.log(await db.property.count(), "PT");
   const filterConditions: Prisma.propertyWhereInput = {
     userId: where?.agentId,
     title: where?.title ? { contains: where.title } : undefined,
@@ -73,14 +74,15 @@ const getProperties = async ({
         listingType: filters?.listingType?.toLocaleUpperCase() as LISTING_TYPE,
       },
     ],
+
     marketplace: {
       equals: marketplace,
     },
     type: where?.type,
-    // price:
-    //   where?.minPrice && where?.maxPrice
-    //     ? { gte: where.minPrice, lte: where.maxPrice }
-    //     : undefined,
+    price:
+      where?.minPrice && where?.maxPrice
+        ? { gt: where.minPrice, lte: where.maxPrice }
+        : undefined,
     // hasLegalDocuments: where?.hasLegalDocuments,
     tags:
       filters && filters?.by == "tags" && filters.value
@@ -118,6 +120,8 @@ const getProperties = async ({
     where: filterConditions,
   });
 
+  console.log("MiN", where?.minPrice)
+  console.log("MAX", where?.maxPrice)
   const properties = await db.property.findMany({
     where: filterConditions,
     skip: offset,
@@ -133,6 +137,7 @@ const getProperties = async ({
         : undefined,
   });
 
+  console.log(properties.length)
   return {
     meta: {
       totalItems: all,
