@@ -41,6 +41,8 @@ enum PROVIDER {
 enum LISTING_TYPE {
   RENT
   SALE
+  HOTEL
+  SHORTLET
 }
 
 enum FILE_TYPE {
@@ -185,7 +187,7 @@ model file {
   businessInfo  businessInfo[]
   artisan       user?          @relation("gallery", fields: [artisanId], references: [uuid])
   artisanId     String?
-  ads            ad[]
+  ads           ad[]
 }
 
 model password {
@@ -212,8 +214,6 @@ model propertyType {
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 }
-
-
 
 model subscription {
   id      Int                @unique @default(autoincrement())
@@ -325,9 +325,9 @@ model property {
   price       Decimal
   address     address? @relation(fields: [addressId], references: [uuid])
 
-  phone String?
-  type  PRODUCT_TYPE @default(PROPERTY)
-  moreInfo String? @db.LongText
+  phone    String?
+  type     PRODUCT_TYPE @default(PROPERTY)
+  moreInfo String?      @db.LongText
 
   specifications    specifications? @relation(fields: [specificationsId], references: [uuid])
   hasLegalDocuments Boolean         @default(false)

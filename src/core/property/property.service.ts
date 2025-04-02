@@ -66,6 +66,11 @@ const getProperties = async ({
         },
       },
       {
+        address: {
+          address: { contains: where?.title },
+        },
+      },
+      {
         description: {
           contains: where?.title,
         },
@@ -120,8 +125,8 @@ const getProperties = async ({
     where: filterConditions,
   });
 
-  console.log("MiN", where?.minPrice)
-  console.log("MAX", where?.maxPrice)
+  console.log("MiN", where?.minPrice);
+  console.log("MAX", where?.maxPrice);
   const properties = await db.property.findMany({
     where: filterConditions,
     skip: offset,
@@ -137,7 +142,7 @@ const getProperties = async ({
         : undefined,
   });
 
-  console.log(properties.length)
+  console.log(properties.length);
   return {
     meta: {
       totalItems: all,
