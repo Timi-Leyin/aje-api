@@ -18,12 +18,10 @@ export const newPropertySchema = [
     .optional(),
 
   body("price").isString().trim().isLength({
-    min:1
+    min: 1,
   }),
 
-  body("listingType")
-    .isString()
-    .trim()
-    .matches(/rent|sale/)
-    .withMessage("Must be Rent or Sale"),
+  body("listingType").isString().trim(),
+  // .matches(/rent|sale/)
+  // .withMessage("Must be Rent or Sale"),
 ];

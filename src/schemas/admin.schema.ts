@@ -28,14 +28,14 @@ export const createAdSchema = [
   body("title")
     .trim()
     .isString()
-    .withMessage("title is Required")
+    .optional()
     .isLength({ min: 3 })
     .withMessage("title must be more 3"),
-
+    
   body("description")
     .trim()
     .isString()
-    .withMessage("description is Required")
+    .optional()
     .isLength({ min: 3 })
     .withMessage("description must be more 3"),
 ];

@@ -360,7 +360,7 @@ model ad {
   id   Int    @unique @default(autoincrement())
   uuid String @id @unique @default(cuid())
 
-  title       String
+  title       String?
   description String?
 
   link String?
