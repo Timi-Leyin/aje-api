@@ -25,17 +25,7 @@ export const sendEmailSchema = [
 ];
 
 export const createAdSchema = [
-  body("title")
-    .trim()
-    .isString()
-    .optional()
-    .isLength({ min: 3 })
-    .withMessage("title must be more 3"),
-    
-  body("description")
-    .trim()
-    .isString()
-    .optional()
-    .isLength({ min: 3 })
-    .withMessage("description must be more 3"),
+  body("title").trim().isString().optional(),
+
+  body("description").trim().isString().optional(),
 ];
