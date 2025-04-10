@@ -80,6 +80,10 @@ const getProperties = async ({
       },
     ],
 
+    listingType: filters?.listingType
+      ? (filters?.listingType?.toLocaleUpperCase() as LISTING_TYPE)
+      : undefined,
+
     marketplace: {
       equals: marketplace,
     },
