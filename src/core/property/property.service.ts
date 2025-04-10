@@ -1,4 +1,5 @@
 import {
+  CURRENCY,
   file,
   LISTING_TYPE,
   Prisma,
@@ -165,6 +166,7 @@ interface createPropertyParams {
   description: string;
   listingType: LISTING_TYPE;
   userId: string;
+  currency?: string;
   tags: string;
   videoTour?: string;
   longitude?: string | number;
@@ -225,6 +227,7 @@ const createProperties = async ({
   images,
   tags,
   videoTour,
+  currency,
   price,
   type,
   specifications,
@@ -246,6 +249,7 @@ const createProperties = async ({
       type,
       marketplace: type == "PRODUCT" ? true : false,
       listingType: listingType.toUpperCase() as LISTING_TYPE,
+      currency: currency ? (currency.toUpperCase() as CURRENCY) : undefined,
       address: {
         create: {
           address: String(address),

@@ -17,6 +17,7 @@ export default async (req: Request, res: Response) => {
       listingType,
       type,
       yearBuilt,
+      currency,
       squareFeet,
       bedrooms,
       bathrooms,
@@ -24,8 +25,7 @@ export default async (req: Request, res: Response) => {
       latitude,
       longitude,
     } = req.body as createPropertyDTO;
-    console.log(price);
-    console.log(req.body);
+
     // @ts-ignore
     if (
       !req.files ||
@@ -74,6 +74,7 @@ export default async (req: Request, res: Response) => {
       latitude,
       longitude,
       videoTour,
+      currency,
       price,
       type:
         userType == "AGENT"

@@ -6,6 +6,7 @@ export interface createPropertyDTO {
   tags: string;
   type?: PRODUCT_TYPE;
   price: string | number;
+  currency?:string;
   latitude: string | number;
   longitude: string | number;
   listingType: LISTING_TYPE;
