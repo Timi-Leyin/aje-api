@@ -137,7 +137,7 @@ const getProperties = async ({
     skip: offset,
     take: limit,
     include: {
-      images: { take: 1 },
+      images: true,
       address: true,
       tags: true,
     },
@@ -180,6 +180,7 @@ interface createPropertyParams {
 interface editPropertyParams {
   title: string;
   description: string;
+  currency?: string;
   listingType: LISTING_TYPE;
   userId: string;
   propertyId: string;
@@ -300,6 +301,7 @@ const updateProperties = async ({
   videoTour,
   price,
   status,
+  currency,
   // type,
   specifications,
   address,
@@ -312,6 +314,7 @@ const updateProperties = async ({
     data: {
       title,
       description,
+      currency: currency ? (currency.toUpperCase() as CURRENCY) : undefined,
       // type,
       listingType: listingType.toUpperCase() as LISTING_TYPE,
       address: {

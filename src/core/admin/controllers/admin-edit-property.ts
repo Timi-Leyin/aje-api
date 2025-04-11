@@ -16,6 +16,7 @@ export default async (req: Request, res: Response) => {
       price,
       listingType,
       yearBuilt,
+      currency,
       squareFeet,
       bedrooms,
       status,
@@ -40,9 +41,10 @@ export default async (req: Request, res: Response) => {
       description,
       title,
       listingType,
+      currency,
       address,
       propertyId,
-      status: (status||"AVAILABLE").toUpperCase() as PROPERTY_STATUS,
+      status: (status || "AVAILABLE").toUpperCase() as PROPERTY_STATUS,
       videoTour,
       price,
       specifications: {
@@ -60,7 +62,7 @@ export default async (req: Request, res: Response) => {
       })
     );
   } catch (error) {
-    logger(error)
+    logger(error);
     return errorHandler(res, error);
   }
 };

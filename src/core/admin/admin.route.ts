@@ -18,6 +18,9 @@ import { multerUpload } from "../../config/multer";
 import deleteAds from "./controllers/deleteAds";
 import { ROUTES } from "../../constants/routes";
 import adminEditProperty from "./controllers/admin-edit-property";
+import adminNewProducts from "./controllers/admin-new-products";
+import adminDeleteProduct from "./controllers/admin-delete-product";
+import adminEditProduct from "./controllers/admin-edit-product";
 
 const adminRoutes = Router();
 
@@ -39,6 +42,23 @@ adminRoutes.post(
   sendEmailSchema,
   bodyValidation,
   sendMessages
+);
+
+const multipleUpload = multerUpload.array("images");
+adminRoutes.post(
+  "/products",
+  authGuard,
+  isAdmin,
+  multipleUpload,
+  adminNewProducts
+);
+adminRoutes.delete("/products/:id", authGuard, isAdmin, adminDeleteProduct);
+adminRoutes.put(
+  "/products/:id",
+  authGuard,
+  isAdmin,
+  multipleUpload,
+  adminEditProduct
 );
 
 const upload = multerUpload.single("image");
