@@ -9,13 +9,13 @@ export default async (req: Request, res: Response) => {
     const { title, description, link } = req.body;
     // @ts-ignore
     const image = req?.file;
-    if (!title || !description) {
-      return res
-        .status(400)
-        .json(
-          responseObject({ message: "Title and description are required" })
-        );
-    }
+    // if (!title || !description) {
+    //   return res
+    //     .status(400)
+    //     .json(
+    //       responseObject({ message: "Title and description are required" })
+    //     );
+    // }
 
     if (!image) {
       return res
