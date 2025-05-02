@@ -25,6 +25,7 @@ import artisanRoutes from "./core/artisans/artisan.routes";
 import marketplaceRoute from "./core/marketplace/marketplace.roues";
 import adminRoutes from "./core/admin/admin.route";
 import adsRouter from "./core/ad/ad.route";
+import version2Routes from "./v2/v2.index";
 
 // import { multipleProperty } from "./helpers/random-data";
 // multipleProperty()
@@ -68,6 +69,7 @@ apiRoutes.use("/test", testsRoute);
 // DO NOT TOUCH >>>>>>>>
 app.get(ROUTES.BASE, defaultMiddleware);
 app.use(ROUTES.BASE, apiRoutes);
+app.use(ROUTES.VERSIONS.V2, version2Routes);
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
 export default app;

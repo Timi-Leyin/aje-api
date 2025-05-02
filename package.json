@@ -46,6 +46,7 @@
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "prisma": "^5.16.1",
+    "prisma-extension-random": "^0.2.2",
     "ts-jest": "^29.1.5"
   },
   "devDependencies": {

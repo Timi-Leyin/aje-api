@@ -14,7 +14,7 @@ export const ROUTES = {
   SUBROUTES: {
     AUTH: "/auth",
     ARTISAN: "/artisan",
-    MARKETPLACE:"/marketplace",
+    MARKETPLACE: "/marketplace",
     REVIEWS: "/reviews",
     SUBSCRIPTION: "/subscription",
     PROFILE: "/profile",
@@ -25,6 +25,9 @@ export const ROUTES = {
     ARTWORK: "/artwork",
     PAYSTACK_WEBHOOK: "/paystack/webhook",
     SALES: "/sales",
+  },
+  VERSIONS: {
+    V2: "/api/v2",
   },
   MY_PROPERTY: "/my-property",
 

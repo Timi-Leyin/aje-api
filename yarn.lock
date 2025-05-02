@@ -3067,6 +3067,11 @@ pretty-format@^29.0.0, pretty-format@^29.7.0:
     ansi-styles "^5.0.0"
     react-is "^18.0.0"
 
+prisma-extension-random@^0.2.2:
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/prisma-extension-random/-/prisma-extension-random-0.2.2.tgz#9d4033a70786de1dfd6f4ae50409a9b87a711fe3"
+  integrity sha512-tjY5w2pSIgwQh0tDT98KTTYJ0uadUwfbTH+6QbPCfLg+gesgeLZNO4oKv8O6/udx54QvEbyXgNC1LUcjtoypcg==
+
 prisma@^5.16.1:
   version "5.16.1"
   resolved "https://registry.npmjs.org/prisma/-/prisma-5.16.1.tgz"
