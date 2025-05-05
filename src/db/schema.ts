@@ -5,7 +5,8 @@ import {
   timestamp,
   mysqlEnum,
 } from "drizzle-orm/mysql-core";
-import { identifier, timestamps } from "./helpers/column-helpers";
+import { timestamps } from "./helpers/column-helpers.js";
+import { nanoid } from "nanoid";
 
 const userTypes = mysqlEnum("user_types", [
   "buyer",
@@ -16,7 +17,7 @@ const userTypes = mysqlEnum("user_types", [
 ]);
 
 export const usersTable = mysqlTable("users", {
-  ...identifier,
+  id: text("id").default(nanoid()).unique().primaryKey(),
   email: varchar({ length: 255 }).notNull().unique(),
   first_name: varchar({ length: 50 }).notNull(),
   last_name: varchar({ length: 50 }).notNull(),

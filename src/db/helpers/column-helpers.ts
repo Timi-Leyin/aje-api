@@ -6,7 +6,3 @@ export const timestamps = {
   created_at: timestamp().defaultNow().notNull(),
   updated_at: timestamp().defaultNow().notNull(),
 };
-
-export const identifier = {
-  id: text().default(nanoid()).unique().primaryKey(),
-};
