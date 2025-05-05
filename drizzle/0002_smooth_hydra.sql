@@ -1,0 +1,1 @@
+ALTER TABLE `users` MODIFY COLUMN `id` text NOT NULL DEFAULT ('6x6jIaL5FugPmG0q4uIWy');
