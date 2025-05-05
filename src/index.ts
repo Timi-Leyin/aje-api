@@ -1,7 +1,15 @@
-import dotenv from "dotenv";
-dotenv.config();
-import app from "./app";
-import { ENV } from "./constants/env";
-import logger from "./helpers/logger";
+import { serve } from '@hono/node-server'
+import { Hono } from 'hono'
 
-app.listen(ENV.PORT, () => logger(`Server is Live on PORT ${ENV.PORT} 😊😊`));
+const app = new Hono()
+
+app.get('/', (c) => {
+  return c.text('Hello Hono!')
+})
+
+serve({
+  fetch: app.fetch,
+  port: 7000
+}, (info) => {
+  console.log(`Server is running on http://localhost:${info.port}`)
+})
