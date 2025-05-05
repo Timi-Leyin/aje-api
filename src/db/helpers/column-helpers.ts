@@ -2,7 +2,7 @@ import { text, timestamp, varchar } from "drizzle-orm/mysql-core";
 import { nanoid } from "nanoid";
 
 export const identifier = {
-  id: varchar("id", { length: 100 }).default(nanoid()).unique().primaryKey(),
+  id: varchar("id", { length: 100 }).unique().primaryKey(),
 };
 
 export const timestamps = {

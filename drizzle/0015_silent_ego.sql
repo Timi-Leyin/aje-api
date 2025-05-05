@@ -1,0 +1,2 @@
+ALTER TABLE `files` MODIFY COLUMN `id` varchar(100) NOT NULL DEFAULT 'VDgNHkeC0-TSFPe3LiEz7';--> statement-breakpoint
+ALTER TABLE `users` MODIFY COLUMN `id` varchar(100) NOT NULL DEFAULT 'VDgNHkeC0-TSFPe3LiEz7';
