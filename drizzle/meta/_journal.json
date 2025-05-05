@@ -113,6 +113,34 @@
       "when": 1746473866594,
       "tag": "0015_silent_ego",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "5",
+      "when": 1746479241160,
+      "tag": "0016_common_gladiator",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "5",
+      "when": 1746479312110,
+      "tag": "0017_faithful_black_widow",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "5",
+      "when": 1746482865575,
+      "tag": "0018_short_spacker_dave",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "5",
+      "when": 1746486459728,
+      "tag": "0019_cultured_barracuda",
+      "breakpoints": true
     }
   ]
 }

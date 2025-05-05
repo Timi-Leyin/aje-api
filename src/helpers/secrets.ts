@@ -9,11 +9,11 @@ export const comaprePassword = (password: string, hash: string) => {
   return bcrypt.compare(password, hash);
 };
 
-interface Payload {
+export interface JwtPayload {
   id: string;
 }
 
-export const generateJWT = async (payload: Payload) => {
+export const generateJWT = async (payload: JwtPayload) => {
   const _payload = {
     timestamp: Date.now(),
     ...payload,

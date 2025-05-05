@@ -1,0 +1,1 @@
+export const CLOUD_UPLOAD_ASSETS = false;

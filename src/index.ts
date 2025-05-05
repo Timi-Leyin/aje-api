@@ -3,6 +3,8 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 import authRoutes from "./app/auth";
+import propertyRoutes from "./app/property";
+import profileRoutes from "./app/profile";
 
 const app = new Hono();
 
@@ -12,6 +14,8 @@ app.get("/", (c) => {
 });
 
 app.route("/auth", authRoutes);
+app.route("/property", propertyRoutes);
+app.route("/profile", profileRoutes);
 
 serve(
   {
