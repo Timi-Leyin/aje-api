@@ -1,0 +1,1 @@
+ALTER TABLE `users` MODIFY COLUMN `profile_photo_id` varchar(100);

@@ -1,6 +1,8 @@
 import "dotenv/config";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
+import { db } from "./db/index";
+import { usersTable } from "./db/schema";
 
 const app = new Hono();
 

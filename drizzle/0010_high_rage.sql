@@ -1,0 +1,1 @@
+ALTER TABLE `users` MODIFY COLUMN `id` varchar(100) NOT NULL;

@@ -43,6 +43,69 @@
       "when": 1746464564193,
       "tag": "0005_swift_young_avengers",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1746465845647,
+      "tag": "0006_cuddly_monster_badoon",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1746466596147,
+      "tag": "0007_faithful_doctor_octopus",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1746466817870,
+      "tag": "0008_colorful_boomerang",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1746466885326,
+      "tag": "0009_tidy_thanos",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1746467443999,
+      "tag": "0010_high_rage",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1746467484714,
+      "tag": "0011_polite_leopardon",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1746467547062,
+      "tag": "0012_strange_mojo",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "5",
+      "when": 1746467760982,
+      "tag": "0013_tired_wendigo",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "5",
+      "when": 1746468629509,
+      "tag": "0014_cloudy_the_order",
+      "breakpoints": true
     }
   ]
 }
