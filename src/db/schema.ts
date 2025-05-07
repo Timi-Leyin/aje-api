@@ -6,6 +6,7 @@ import {
   mysqlEnum,
   float,
   int,
+  boolean,
 } from "drizzle-orm/mysql-core";
 import { identifier, timestamps } from "./helpers/column-helpers";
 import { relations } from "drizzle-orm";
@@ -30,6 +31,7 @@ export const users = mysqlTable("users", {
   first_name: varchar({ length: 50 }).notNull(),
   last_name: varchar({ length: 50 }).notNull(),
   phone: varchar({ length: 15 }).notNull(),
+  verified: boolean().default(false),
   password: text(),
 
   auth_provider: authProviders.default("default"),
@@ -67,7 +69,7 @@ export const property = mysqlTable("property", {
 export const propertyRelations = relations(property, ({ many, one }) => ({
   images: many(files),
   schedules: many(schedule),
-  user_id: one(users, {
+  user: one(users, {
     fields: [property.user_id],
     references: [users.id],
   }),

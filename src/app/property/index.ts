@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { createPropertyValidator, editPropertyValidator } from "./validator";
+import { editPropertyValidator } from "./validator";
 import { uploadFiles } from "../../helpers/files";
 import { nanoid } from "nanoid";
 import { db } from "../../db";
@@ -221,6 +221,47 @@ propertyRoutes.get("/", async (c) => {
         limit: limitNumber,
         totalPages: Math.ceil(total / limitNumber),
       },
+    });
+  } catch (error) {
+    console.error(error);
+    return c.json({ message: "Internal server error" }, 500);
+  }
+});
+
+propertyRoutes.get("/:id", async (c) => {
+  try {
+    const id = c.req.param("id");
+
+    const propertyInfo = await db.query.property.findFirst({
+      where: eq(property.id, id),
+      with: {
+        images: true,
+        user: {
+          columns: {
+            first_name: true,
+            last_name: true,
+            last_login: true,
+            email: true,
+            phone: true,
+            created_at: true,
+          },
+        },
+        schedules: true,
+      },
+    });
+
+    if (!propertyInfo) {
+      return c.json(
+        {
+          message: "Property not found",
+        },
+        404
+      );
+    }
+
+    return c.json({
+      message: "Property retrieved",
+      data: propertyInfo,
     });
   } catch (error) {
     console.error(error);
