@@ -39,8 +39,9 @@ export const users = mysqlTable("users", {
   ...timestamps,
 });
 
-export const usersRelations = relations(users, ({ one }) => ({
+export const usersRelations = relations(users, ({ one, many }) => ({
   profile_photo: one(files),
+  properties: many(property),
 }));
 
 export const property = mysqlTable("property", {
@@ -49,6 +50,7 @@ export const property = mysqlTable("property", {
   description: text().notNull(),
   price: float().notNull(),
   currency: currency,
+  amenities: text().default(""),
   lat: float(),
   lon: float(),
   city: varchar({ length: 100 }),
@@ -58,13 +60,17 @@ export const property = mysqlTable("property", {
   bathrooms: int().default(0),
   beds: int().default(0),
   bedrooms: int().default(0),
+  user_id: text("property_id").references(() => users.id),
   ...timestamps,
 });
 
-export const propertyRelations = relations(property, ({ many }) => ({
+export const propertyRelations = relations(property, ({ many, one }) => ({
   images: many(files),
-  amenities: many(amenity),
   schedules: many(schedule),
+  user_id: one(users, {
+    fields: [property.user_id],
+    references: [users.id],
+  }),
 }));
 
 export const files = mysqlTable("files", {
@@ -88,13 +94,6 @@ export const fileRelations = relations(files, ({ one }) => ({
   }),
 }));
 
-export const amenity = mysqlTable("amentity", {
-  ...identifier,
-  property_id: text("property_id").references(() => property.id),
-  name: varchar({ length: 255 }),
-  ...timestamps,
-});
-
 export const schedule = mysqlTable("schedule", {
   ...identifier,
   property_id: text("property_id").references(() => property.id),
@@ -103,3 +102,10 @@ export const schedule = mysqlTable("schedule", {
   to: timestamp(),
   ...timestamps,
 });
+
+export const scheduleRelations = relations(schedule, ({ one }) => ({
+  property_id: one(property, {
+    fields: [schedule.property_id],
+    references: [property.id],
+  }),
+}));

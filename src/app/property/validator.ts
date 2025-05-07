@@ -4,24 +4,33 @@ import { z } from "zod";
 export const createPropertyValidator = zValidator(
   "form",
   z.object({
-    title: z.string(),
-    description: z.string(),
-    price: z.string(),
-    currency: z.enum(["USD", "NGN"]),
+    json: z.string(),
+    images: z.array(z.any())
+  })
+);
+
+export const editPropertyValidator = zValidator(
+  "form",
+  z.object({
+    title: z.string().optional(),
+    description: z.string().optional(),
+    price: z.string().optional(),
+    currency: z.enum(["USD", "NGN"]).optional(),
     lat: z.string().optional(),
     lon: z.string().optional(),
-    city: z.string(),
-    address: z.string(),
+    city: z.string().optional(),
+    address: z.string().optional(),
 
-    listingType: z.string(), // for sale, etc
-    type: z.string(), // hotel, etc
+    listingType: z.string().optional(), // for sale, etc
+    type: z.string().optional(), // hotel, etc
 
-    bathrooms: z.string(),
+    bathrooms: z.string().optional(),
     beds: z.string().optional(),
-    bedrooms: z.string(),
+    bedrooms: z.string().optional(),
 
-    images: z.array(z.any()), // idk
-    amenities: z.string(), // ["wifi", "AC"]
+    images: z.array(z.any()).optional(), // idk
+    imagesChanges: z.any().optional(), // idk
+    amenities: z.string().optional(), // ["wifi", "AC"]
     schedule: z.array(z.any()).optional(), // [{monday:{from:D,to:D}}]
   })
 );

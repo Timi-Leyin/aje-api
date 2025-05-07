@@ -1,38 +1,12 @@
 import { Hono } from "hono";
-import { jwt, JwtVariables } from "hono/jwt";
-import { JwtPayload } from "../../helpers/secrets";
 import { db } from "../../db";
-import { files, users } from "../../db/schema";
-import { eq, InferModel } from "drizzle-orm";
+import { users } from "../../db/schema";
+import { eq } from "drizzle-orm";
 import { updateProfileValidator, uploadAvatarValidator } from "./validator";
 import { deleteFile, uploadFiles } from "../../helpers/files";
+import { Variables } from "hono/types";
 
-type Variables = JwtVariables<InferModel<typeof users>>;
 const profileRoutes = new Hono<{ Variables: Variables }>();
-
-// PROTECTED
-profileRoutes.use(
-  "/*",
-  jwt({
-    secret: process.env.JWT_SECRET,
-  }),
-  async (c, next) => {
-    const { id } = c.get("jwtPayload");
-    const profile = await db.query.users.findFirst({
-      where: eq(users.id, id),
-      with: {
-        profile_photo: true,
-      },
-    });
-
-    if (!profile) {
-      return c.json({ message: "Unauthorized" }, 401);
-    }
-    const { password, ...rest } = profile as any;
-    c.set("jwtPayload", rest);
-    await next();
-  }
-);
 
 profileRoutes.get("/", async (c) => {
   const data = c.get("jwtPayload");
@@ -70,12 +44,13 @@ profileRoutes.post("/upload-avatar", uploadAvatarValidator, async (c) => {
 });
 
 profileRoutes.delete("/delete-avatar", async (c) => {
-  const { id } = c.get("jwtPayload");
-  const fileId = await db.query.files.findFirst({
-    where: eq(files.user_id, id),
-  });
-  if (!fileId) return c.json({ message: "Image not found on the server" }, 400);
-  await deleteFile(fileId?.id);
+  const { profile_photo } = c.get("jwtPayload");
+
+  if (!profile_photo || !profile_photo?.id) {
+    return c.json({ message: "Image not found on the server" }, 400);
+  }
+
+  await deleteFile(profile_photo?.id);
   return c.json({ message: "Image Removed" });
 });
 
