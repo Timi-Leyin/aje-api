@@ -39,6 +39,8 @@ propertyRoutes.post("/", async (c) => {
       lon: Number(json.lon),
       amenities: amenities.join(","),
       city: json.city,
+
+      youtube_link: json.youtube,
       type: json.type.toLowerCase(),
       listingType: json.listingType,
       address: json.address,

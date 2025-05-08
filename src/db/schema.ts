@@ -56,6 +56,7 @@ export const property = mysqlTable("property", {
   lat: float(),
   lon: float(),
   city: varchar({ length: 100 }),
+  youtube_link: varchar("youtube_link", { length: 150 }),
   address: varchar({ length: 255 }),
   listingType: varchar({ length: 25 }).notNull(),
   type: varchar({ length: 50 }).notNull(),

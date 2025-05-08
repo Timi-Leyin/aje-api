@@ -176,6 +176,20 @@
       "when": 1746661567856,
       "tag": "0024_early_mandarin",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1746662095277,
+      "tag": "0025_fat_speed",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "5",
+      "when": 1746662848644,
+      "tag": "0026_daffy_sally_floyd",
+      "breakpoints": true
     }
   ]
 }

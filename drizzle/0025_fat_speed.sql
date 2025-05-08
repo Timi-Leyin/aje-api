@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `youtube_link` text;

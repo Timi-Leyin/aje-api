@@ -30,4 +30,5 @@ export interface PropertyFormData {
   address: string;
   amenities: string[];
   availability: Availability;
+  youtube?:string;
 }
