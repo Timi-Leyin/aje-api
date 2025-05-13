@@ -11,7 +11,9 @@ import os from "os";
 import { nanoid } from "nanoid";
 interface Rl {
   property_id?: string;
+  product_id?: string;
   user_id?: string;
+  gallery_id?: string;
 }
 export const uploadFiles = async (file: File | File[], relations?: Rl) => {
   const files = Array.isArray(file) ? file : [file];
@@ -44,6 +46,7 @@ export const uploadFiles = async (file: File | File[], relations?: Rl) => {
 
       uploaded.push(result.public_id);
     }
+    return uploaded;
   }
 
   // # SELF HOSTED

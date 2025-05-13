@@ -9,6 +9,8 @@ import { jwt, JwtVariables } from "hono/jwt";
 import { eq, InferModel } from "drizzle-orm";
 import { db } from "./db";
 import { files, users } from "./db/schema";
+import artisanRoutes from "./app/artisan";
+import marketplaceRoutes from "./app/marketplace";
 
 const app = new Hono();
 
@@ -35,6 +37,7 @@ app.use(
       where: eq(users.id, id),
       with: {
         profile_photo: true,
+        // gallery:true,
         properties: true,
       },
     });
@@ -49,6 +52,8 @@ app.use(
 );
 app.route("/property", propertyRoutes);
 app.route("/profile", profileRoutes);
+app.route("/artisan", artisanRoutes);
+app.route("/marketplace", marketplaceRoutes);
 
 serve(
   {

@@ -37,13 +37,59 @@ export const users = mysqlTable("users", {
   auth_provider: authProviders.default("default"),
   user_type: userTypes.default("buyer"),
 
+  bio: text(),
+  services: text(),
+  address: text(),
+  city: varchar({ length: 30 }),
+  available: boolean(),
+
   last_login: timestamp().defaultNow(),
   ...timestamps,
 });
 
+export const gallery = mysqlTable("gallery", {
+  ...identifier,
+  user_id: text().references(() => users.id),
+  ...timestamps,
+});
+
+export const galleryRelations = relations(gallery, ({ many, one }) => ({
+  user_id: one(users, {
+    fields: [gallery.user_id],
+    references: [users.id],
+  }),
+  images: many(files),
+}));
+
 export const usersRelations = relations(users, ({ one, many }) => ({
   profile_photo: one(files),
+  // gallery: many(files),
   properties: many(property),
+}));
+
+export const product = mysqlTable("product", {
+  ...identifier,
+
+  title: varchar({ length: 255 }).notNull(),
+  description: text().notNull(),
+  price: float().notNull(),
+  currency: currency,
+  lat: float(),
+  lon: float(),
+  city: varchar({ length: 100 }),
+  address: varchar({ length: 255 }),
+  type: varchar({ length: 50 }).notNull(),
+
+  user_id: text().references(() => users.id),
+  ...timestamps,
+});
+
+export const productRelations = relations(product, ({ one, many }) => ({
+  user: one(users, {
+    fields: [product.user_id],
+    references: [users.id],
+  }),
+  images: many(files),
 }));
 
 export const property = mysqlTable("property", {
@@ -83,6 +129,8 @@ export const files = mysqlTable("files", {
   provider: fileProviders,
   property_id: text("property_id").references(() => property.id),
   user_id: text("user_id").references(() => users.id),
+  product_id: text("product_id").references(() => product.id),
+  gallery_id: text("gallery_id").references(() => gallery.id),
   ...timestamps,
 });
 
@@ -94,6 +142,14 @@ export const fileRelations = relations(files, ({ one }) => ({
   user_id: one(users, {
     fields: [files.user_id],
     references: [users.id],
+  }),
+  product_id: one(product, {
+    fields: [files.product_id],
+    references: [product.id],
+  }),
+  gallery_id: one(gallery, {
+    fields: [files.gallery_id],
+    references: [gallery.id],
   }),
 }));
 

@@ -7,6 +7,10 @@ export const updateProfileValidator = zValidator(
     firstName: z.string().optional(),
     lastName: z.string().optional(),
     phone: z.string().optional(),
+    bio: z.string().optional(),
+    available: z.any().optional(),
+    services: z.string().optional(),
+    address: z.string().optional(),
   })
 );
 

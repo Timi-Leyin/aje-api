@@ -11,6 +11,7 @@
     "db:sync": "yarn db:push && yarn db:generate"
   },
   "dependencies": {
+    "@faker-js/faker": "^9.7.0",
     "@hono/node-server": "^1.14.1",
     "@hono/zod-validator": "^0.5.0",
     "bcryptjs": "^3.0.2",
