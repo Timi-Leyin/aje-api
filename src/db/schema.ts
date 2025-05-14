@@ -7,6 +7,7 @@ import {
   float,
   int,
   boolean,
+  datetime,
 } from "drizzle-orm/mysql-core";
 import { identifier, timestamps } from "./helpers/column-helpers";
 import { relations } from "drizzle-orm";
@@ -22,6 +23,11 @@ const userTypes = mysqlEnum("user_types", [
 
 const fileProviders = mysqlEnum("file_provider", ["cloudinary", "self_hosted"]);
 const authProviders = mysqlEnum("auth_provider", ["google", "default"]);
+const trxStatus = mysqlEnum("transaction_status", [
+  "pending",
+  "failed",
+  "success",
+]);
 
 const currency = mysqlEnum("currency", ["USD", "NGN"]);
 
@@ -43,6 +49,8 @@ export const users = mysqlTable("users", {
   city: varchar({ length: 30 }),
   available: boolean(),
 
+  subscription_id: text("subscription_id"),
+
   last_login: timestamp().defaultNow(),
   ...timestamps,
 });
@@ -63,8 +71,21 @@ export const galleryRelations = relations(gallery, ({ many, one }) => ({
 
 export const usersRelations = relations(users, ({ one, many }) => ({
   profile_photo: one(files),
-  // gallery: many(files),
+  // gallery: many(gallery),
   properties: many(property),
+
+  reviewsMade: many(review, {
+    relationName: "author",
+  }),
+
+  reviews: many(review, {
+    relationName: "artisan",
+  }),
+
+  subscription: one(subscription, {
+    fields: [users.subscription_id],
+    references: [subscription.id],
+  }),
 }));
 
 export const product = mysqlTable("product", {
@@ -89,6 +110,7 @@ export const productRelations = relations(product, ({ one, many }) => ({
     fields: [product.user_id],
     references: [users.id],
   }),
+  reviews: many(review),
   images: many(files),
 }));
 
@@ -116,6 +138,7 @@ export const property = mysqlTable("property", {
 export const propertyRelations = relations(property, ({ many, one }) => ({
   images: many(files),
   schedules: many(schedule),
+  reviews: many(review),
   user: one(users, {
     fields: [property.user_id],
     references: [users.id],
@@ -168,3 +191,115 @@ export const scheduleRelations = relations(schedule, ({ one }) => ({
     references: [property.id],
   }),
 }));
+
+export const review = mysqlTable("review", {
+  ...identifier,
+  rating: int().default(0),
+  message: text(),
+  property_id: text("property_id").references(() => property.id),
+  product_id: text("product_id").references(() => product.id),
+  user_id: text("user_id").references(() => users.id),
+  artisan_id: text("artisan_id").references(() => users.id),
+  ...timestamps,
+});
+
+export const reviewRelations = relations(review, ({ one }) => ({
+  property: one(property, {
+    fields: [review.property_id],
+    references: [property.id],
+  }),
+
+  product: one(product, {
+    fields: [review.product_id],
+    references: [product.id],
+  }),
+
+  artisan: one(users, {
+    fields: [review.artisan_id],
+    references: [users.id],
+    relationName: "artisan",
+  }),
+
+  user: one(users, {
+    fields: [review.user_id],
+    references: [users.id],
+    relationName: "author",
+  }),
+}));
+
+export const notification = mysqlTable("notification", {
+  ...identifier,
+  title: text(),
+  message: text(),
+  read: boolean().default(false),
+  user_id: text().references(() => users.id),
+  ...timestamps,
+});
+
+export const notificationRelations = relations(notification, ({ one }) => ({
+  user_id: one(users, {
+    fields: [notification.user_id],
+    references: [users.id],
+  }),
+}));
+
+export const subscription = mysqlTable("subscription", {
+  ...identifier,
+  user_id: text().references(() => users.id),
+  transaction_id: text().references(() => transaction.id),
+  plan_code: text().notNull(),
+  code: text(),
+  active: boolean(),
+  expired: boolean(),
+  next_payment_at: datetime(),
+  status: trxStatus.default("pending"),
+  paid_at: datetime(),
+  amount: float(),
+  reties: int(),
+  ...timestamps,
+});
+
+export const subscriptionRelations = relations(subscription, ({ one }) => ({
+  user: one(users, {
+    fields: [subscription.user_id],
+    references: [users.id],
+  }),
+  transaction: one(transaction, {
+    fields: [subscription.transaction_id],
+    references: [transaction.id],
+  }),
+}));
+
+export const transaction = mysqlTable("transaction", {
+  ...identifier,
+  user_id: text().references(() => users.id),
+  subscription_id: text(),
+  plan_code: text().notNull(),
+  status: trxStatus.default("pending"),
+  amount: float(),
+  fee: float(),
+  paid_at: datetime(),
+  ...timestamps,
+});
+
+export const transactionRelations = relations(transaction, ({ one }) => ({
+  user: one(users, {
+    fields: [transaction.user_id],
+    references: [users.id],
+  }),
+  subscription: one(subscription, {
+    fields: [transaction.subscription_id],
+    references: [subscription.id],
+  }),
+}));
+
+// export const wishlist = mysqlTable("wishlist", {
+//   ...identifier,
+//   name: text().notNull(),
+//   user_id: text().references(() => users.id),
+//   ...timestamps,
+// });
+
+// export const wishlistRelations = relations(wishlist, ()=>({
+
+// }))

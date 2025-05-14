@@ -282,6 +282,17 @@ marketplaceRoutes.get("/product/:id", async (c) => {
             created_at: true,
           },
         },
+        reviews: {
+          with: {
+            user: {
+              columns: {
+                email: true,
+                first_name: true,
+                last_name: true,
+              },
+            },
+          },
+        },
       },
     });
 

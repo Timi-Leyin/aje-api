@@ -8,9 +8,12 @@ import profileRoutes from "./app/profile";
 import { jwt, JwtVariables } from "hono/jwt";
 import { eq, InferModel } from "drizzle-orm";
 import { db } from "./db";
-import { files, users } from "./db/schema";
+import { files, subscription, users } from "./db/schema";
 import artisanRoutes from "./app/artisan";
 import marketplaceRoutes from "./app/marketplace";
+import reviewsRoutes from "./app/review";
+import webhooksRoutes from "./app/webhook";
+import plansRoutes from "./app/plan";
 
 const app = new Hono();
 
@@ -23,8 +26,11 @@ app.route("/auth", authRoutes);
 
 type Users = InferModel<typeof users>;
 type Files = InferModel<typeof files>;
-type VAR = Users & { profile_photo: Files };
+type Sub = InferModel<typeof subscription>;
+type VAR = Users & { profile_photo: Files; subscription: Sub };
 export type Variables = JwtVariables<VAR>;
+
+app.route("/paystack", webhooksRoutes);
 // PROTECTED
 app.use(
   "/*",
@@ -38,6 +44,7 @@ app.use(
       with: {
         profile_photo: true,
         // gallery:true,
+        subscription: true,
         properties: true,
       },
     });
@@ -54,6 +61,8 @@ app.route("/property", propertyRoutes);
 app.route("/profile", profileRoutes);
 app.route("/artisan", artisanRoutes);
 app.route("/marketplace", marketplaceRoutes);
+app.route("/review", reviewsRoutes);
+app.route("/plan", plansRoutes);
 
 serve(
   {

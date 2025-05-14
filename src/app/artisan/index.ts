@@ -94,10 +94,19 @@ artisanRoutes.get("/:id", async (c) => {
       with: {
         //   gallery: true,
         profile_photo: true,
+        reviews: {
+          with: {
+            user: {
+              columns: {
+                email: true,
+                first_name: true,
+                last_name: true,
+              },
+            },
+          },
+        },
       },
     });
-
-    
 
     return c.json({
       message: "Artisan retrieved",

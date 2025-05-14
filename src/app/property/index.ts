@@ -3,7 +3,7 @@ import { editPropertyValidator } from "./validator";
 import { deleteFile, uploadFiles } from "../../helpers/files";
 import { nanoid } from "nanoid";
 import { db } from "../../db";
-import { files, property, schedule } from "../../db/schema";
+import { files, property, review, schedule } from "../../db/schema";
 import { and, eq, gte, like, lte, or, sql } from "drizzle-orm";
 import { Variables } from "../..";
 import { PropertyFormData } from "./types";
@@ -234,6 +234,7 @@ propertyRoutes.get("/", async (c) => {
           images: {
             limit: 5,
           },
+
         },
       }),
       db
@@ -243,6 +244,8 @@ propertyRoutes.get("/", async (c) => {
         .then((res) => res[0].count),
     ]);
 
+
+    
     return c.json({
       message: "Properties retrieved",
       data: properties,
@@ -361,8 +364,20 @@ propertyRoutes.get("/:id", async (c) => {
             created_at: true,
           },
         },
+        reviews: {
+          with: {
+            user: {
+              columns: {
+                email: true,
+                first_name: true,
+                last_name: true,
+              },
+            },
+          },
+        },
         schedules: true,
       },
+
     });
 
     if (!propertyInfo) {
