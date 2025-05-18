@@ -281,6 +281,9 @@ marketplaceRoutes.get("/product/:id", async (c) => {
             verified: true,
             created_at: true,
           },
+          with: {
+            profile_photo: true,
+          },
         },
         reviews: {
           with: {

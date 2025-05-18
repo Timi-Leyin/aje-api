@@ -234,7 +234,6 @@ propertyRoutes.get("/", async (c) => {
           images: {
             limit: 5,
           },
-
         },
       }),
       db
@@ -244,8 +243,6 @@ propertyRoutes.get("/", async (c) => {
         .then((res) => res[0].count),
     ]);
 
-
-    
     return c.json({
       message: "Properties retrieved",
       data: properties,
@@ -363,6 +360,9 @@ propertyRoutes.get("/:id", async (c) => {
             verified: true,
             created_at: true,
           },
+          with: {
+            profile_photo: true,
+          },
         },
         reviews: {
           with: {
@@ -377,7 +377,6 @@ propertyRoutes.get("/:id", async (c) => {
         },
         schedules: true,
       },
-
     });
 
     if (!propertyInfo) {

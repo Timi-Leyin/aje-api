@@ -14,6 +14,8 @@ import marketplaceRoutes from "./app/marketplace";
 import reviewsRoutes from "./app/review";
 import webhooksRoutes from "./app/webhook";
 import plansRoutes from "./app/plan";
+import notificationsRoutes from "./app/notification";
+import reportRoutes from "./app/report";
 
 const app = new Hono();
 
@@ -52,6 +54,12 @@ app.use(
     if (!profile) {
       return c.json({ message: "Unauthorized" }, 401);
     }
+
+    // const sub = await db.query.subscription.findMany({
+    //   where: eq(subscription.user_id, profile?.id),
+    // });
+
+    // console.log(profile.subscription);
     const { password, ...rest } = profile as any;
     c.set("jwtPayload", rest);
     await next();
@@ -63,6 +71,8 @@ app.route("/artisan", artisanRoutes);
 app.route("/marketplace", marketplaceRoutes);
 app.route("/review", reviewsRoutes);
 app.route("/plan", plansRoutes);
+app.route("/notification", notificationsRoutes);
+app.route("/report", reportRoutes);
 
 serve(
   {

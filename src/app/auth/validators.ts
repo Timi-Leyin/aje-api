@@ -21,3 +21,22 @@ export const loginValidator = zValidator(
     password: z.string(),
   })
 );
+
+export const forgotPasswordValidator = zValidator(
+  "json",
+  z.object({
+    email: z.string().email("Invalid email address"),
+  })
+);
+
+export const resetPasswordValidator = zValidator(
+  "json",
+  z.object({
+    token: z.string(),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+    confirmPassword: z.string(),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  })
+);

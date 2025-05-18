@@ -1,0 +1,1 @@
+ALTER TABLE `subscription` ADD `plan_name` text;

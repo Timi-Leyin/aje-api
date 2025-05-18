@@ -247,10 +247,12 @@ export const subscription = mysqlTable("subscription", {
   ...identifier,
   user_id: text().references(() => users.id),
   transaction_id: text().references(() => transaction.id),
+  plan_name: text(),
   plan_code: text().notNull(),
   code: text(),
   active: boolean(),
   expired: boolean(),
+  cancelled: boolean(),
   next_payment_at: datetime(),
   status: trxStatus.default("pending"),
   paid_at: datetime(),
@@ -290,6 +292,31 @@ export const transactionRelations = relations(transaction, ({ one }) => ({
   subscription: one(subscription, {
     fields: [transaction.subscription_id],
     references: [subscription.id],
+  }),
+}));
+
+export const report = mysqlTable("report", {
+  ...identifier,
+  category: text().notNull(),
+  details: text(),
+  property_id: text().references(() => property.id),
+  product_id: text().references(() => product.id),
+  artisan_id: text().references(() => users.id),
+  ...timestamp,
+});
+
+export const reportRelations = relations(report, ({ one }) => ({
+  property: one(property, {
+    fields: [report.property_id],
+    references: [property.id],
+  }),
+  product: one(product, {
+    fields: [report.product_id],
+    references: [product.id],
+  }),
+  artisan: one(users, {
+    fields: [report.artisan_id],
+    references: [users.id],
   }),
 }));
 

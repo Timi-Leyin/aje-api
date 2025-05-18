@@ -13,6 +13,10 @@ interface createSubscriptionPayload {
   start_date?: string; // ISO Date String
 }
 
+interface getSubscriptionPayload{
+  code:string
+}
+
 interface createSubResponse {
   customer: number;
   plan: number;
@@ -59,6 +63,7 @@ interface initTransactionParams {
   email: string;
   amount: number;
   metadata?: any;
+  callback_url?:string;
 }
 
 interface initTransactionResponse {
@@ -109,6 +114,16 @@ const Paystack = class Paystack {
       const response = await this.api.post<
         AxiosResponse<createSubResponse, any>
       >("/subscription", data);
+      return response.data.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+  getSubscription = async (data: getSubscriptionPayload) => {
+    try {
+      const response = await this.api.get<
+        AxiosResponse<createSubResponse, any>
+      >(`/subscription/${data.code}`);
       return response.data.data;
     } catch (error) {
       throw error;

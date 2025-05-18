@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD CONSTRAINT `users_subscription_id_subscription_id_fk` FOREIGN KEY (`subscription_id`) REFERENCES `subscription`(`id`) ON DELETE no action ON UPDATE no action;

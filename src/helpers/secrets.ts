@@ -11,6 +11,7 @@ export const comaprePassword = (password: string, hash: string) => {
 
 export interface JwtPayload {
   id: string;
+  exp?: number;
 }
 
 export const generateJWT = async (payload: JwtPayload) => {
@@ -21,3 +22,5 @@ export const generateJWT = async (payload: JwtPayload) => {
   };
   return await sign(_payload, process.env.JWT_SECRET);
 };
+
+export { verify };

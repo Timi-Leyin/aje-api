@@ -38,11 +38,14 @@ profileRoutes.put("/", updateProfileValidator, async (c) => {
 });
 
 profileRoutes.post("/upload-avatar", uploadAvatarValidator, async (c) => {
-  const { id } = c.get("jwtPayload");
+  const { id, profile_photo } = c.get("jwtPayload");
   const { image } = c.req.valid("form");
   if (!image) {
     return c.json({ message: "Invalid Image" }, 400);
   }
+
+  profile_photo?.id &&
+    (await deleteFile(profile_photo.id).catch(() => undefined));
 
   await uploadFiles(image, {
     user_id: id,
