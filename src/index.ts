@@ -15,8 +15,7 @@ import reviewsRoutes from "./app/review";
 import webhooksRoutes from "./app/webhook";
 import plansRoutes from "./app/plan";
 import notificationsRoutes from "./app/notification";
-import reportRoutes from "./app/report";
-import resetPassword from "./standalone/reset-password";
+import reportRoutes from "./app/report"
 
 const app = new Hono();
 
