@@ -13,6 +13,7 @@ export declare global {
       FRONTEND_URL: string;
       SESSION_SECRET: string;
       EXPO_APP_SCHEME: string;
+      PLUNK_API_KEY: string;
 
       GOOGLE_CLIENT_SECRET: string;
       GOOGLE_CLIENT_ID: string;

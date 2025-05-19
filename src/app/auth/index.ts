@@ -14,8 +14,8 @@ import {
   verify,
 } from "../../helpers/secrets";
 import { nanoid } from "nanoid";
-import { sendPasswordResetEmail } from "../../helpers/email";
 import { html } from "hono/html";
+import { sendEmail } from "../../helpers/email";
 
 const authRoutes = new Hono();
 
@@ -205,7 +205,15 @@ authRoutes.post("/forgot-password", forgotPasswordValidator, async (c) => {
     });
 
     // Send reset email
-    await sendPasswordResetEmail(email, resetToken);
+    await sendEmail({
+      to: user.email,
+      subject: "Password Reset Request",
+      body: `
+        <h1>Password Reset Request</h1>
+        <p>Click the link below to reset your password:</p>
+        <a href="${process.env.BACKEND_URL}/auth/reset-password?token=${resetToken}">Reset Password</a>
+      `,
+    });
 
     return c.json({
       message:
@@ -288,7 +296,7 @@ authRoutes.get("/reset-password", async (c) => {
           }
           button {
             color: #fff;
-            background-color: #007bff;
+            background-color: #007b5d;
             border: none;
             padding: 0.5rem 1rem;
             font-size: 1rem;
@@ -297,7 +305,7 @@ authRoutes.get("/reset-password", async (c) => {
             width: 100%;
           }
           button:hover {
-            background-color: #0056b3;
+            background-color: rgb(3, 151, 114);
           }
           .error {
             color: #dc3545;

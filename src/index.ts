@@ -16,6 +16,7 @@ import webhooksRoutes from "./app/webhook";
 import plansRoutes from "./app/plan";
 import notificationsRoutes from "./app/notification";
 import reportRoutes from "./app/report";
+import resetPassword from "./standalone/reset-password";
 
 const app = new Hono();
 
