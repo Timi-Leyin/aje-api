@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { db } from "../../db";
-import { gallery, users } from "../../db/schema";
+import { docsVerification, gallery, users } from "../../db/schema";
 import { eq } from "drizzle-orm";
 import { updateProfileValidator, uploadAvatarValidator } from "./validator";
 import { deleteFile, uploadFiles } from "../../helpers/files";
@@ -12,6 +12,49 @@ const profileRoutes = new Hono<{ Variables: Variables }>();
 profileRoutes.get("/", async (c) => {
   const data = c.get("jwtPayload");
   return c.json({ message: "profile retrieved", data });
+});
+
+profileRoutes.post("/upload-identification", async (c) => {
+  const { id, verified } = c.get("jwtPayload");
+  const form = await c.req.parseBody();
+
+  if (verified) {
+    return c.json({ message: "You have already verified your account" }, 400);
+  }
+
+  const ninDoc = form.ninDoc as File;
+  const cacDoc = form.cacDoc as File | undefined;
+
+  if (!ninDoc) {
+    return c.json({ message: "NIN/ID documents is required" }, 400);
+  }
+
+  await db.delete(docsVerification).where(eq(docsVerification.user_id, id));
+  const docID = nanoid();
+
+  await db.insert(docsVerification).values({
+    id: docID,
+    user_id: id,
+  });
+
+  // Upload required documents
+  await uploadFiles(ninDoc, {
+    nin_doc_id: docID,
+  });
+
+  // Upload optional CAC document if provided
+  if (cacDoc) {
+    await uploadFiles(cacDoc, {
+      cac_doc_id: docID,
+    });
+  }
+
+  await db
+    .update(users)
+    .set({ verification_status: "pending" })
+    .where(eq(users.id, id));
+
+  return c.json({ message: "Identification documents uploaded successfully" });
 });
 
 profileRoutes.put("/", updateProfileValidator, async (c) => {

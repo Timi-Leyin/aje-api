@@ -23,6 +23,11 @@ const userTypes = mysqlEnum("user_types", [
 
 const fileProviders = mysqlEnum("file_provider", ["cloudinary", "self_hosted"]);
 const authProviders = mysqlEnum("auth_provider", ["google", "default"]);
+const verificationStatus = mysqlEnum("verification_status", [
+  "pending",
+  "verified",
+  "rejected",
+]);
 const trxStatus = mysqlEnum("transaction_status", [
   "pending",
   "failed",
@@ -38,6 +43,7 @@ export const users = mysqlTable("users", {
   last_name: varchar({ length: 50 }).notNull(),
   phone: varchar({ length: 15 }).notNull(),
   verified: boolean().default(false),
+  verification_status: verificationStatus,
   password: text(),
 
   auth_provider: authProviders.default("default"),
@@ -54,6 +60,24 @@ export const users = mysqlTable("users", {
   last_login: timestamp().defaultNow(),
   ...timestamps,
 });
+
+export const docsVerification = mysqlTable("docs_verification", {
+  ...identifier,
+  user_id: text().references(() => users.id),
+  ...timestamps,
+});
+
+export const docsVerificationRelations = relations(
+  docsVerification,
+  ({ one, many }) => ({
+    user_id: one(users, {
+      fields: [docsVerification.user_id],
+      references: [users.id],
+    }),
+    ninDocs: many(files, { relationName: "ninDoc" }),
+    cacDocs: many(files, { relationName: "cacDoc" }),
+  })
+);
 
 export const gallery = mysqlTable("gallery", {
   ...identifier,
@@ -154,6 +178,8 @@ export const files = mysqlTable("files", {
   user_id: text("user_id").references(() => users.id),
   product_id: text("product_id").references(() => product.id),
   gallery_id: text("gallery_id").references(() => gallery.id),
+  nin_doc_id: text("nin_doc_id").references(() => docsVerification.id),
+  cac_doc_id: text("cac_doc_id").references(() => docsVerification.id),
   ...timestamps,
 });
 
@@ -173,6 +199,16 @@ export const fileRelations = relations(files, ({ one }) => ({
   gallery_id: one(gallery, {
     fields: [files.gallery_id],
     references: [gallery.id],
+  }),
+  ninDocVerification: one(docsVerification, {
+    fields: [files.nin_doc_id],
+    references: [docsVerification.id],
+    relationName: "ninDoc",
+  }),
+  cacDocVerification: one(docsVerification, {
+    fields: [files.cac_doc_id],
+    references: [docsVerification.id],
+    relationName: "cacDoc",
   }),
 }));
 

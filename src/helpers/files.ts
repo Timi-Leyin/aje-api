@@ -14,6 +14,8 @@ interface Rl {
   product_id?: string;
   user_id?: string;
   gallery_id?: string;
+  nin_doc_id?: string;
+  cac_doc_id?: string;
 }
 export const uploadFiles = async (file: File | File[], relations?: Rl) => {
   const files = Array.isArray(file) ? file : [file];
@@ -41,6 +43,7 @@ export const uploadFiles = async (file: File | File[], relations?: Rl) => {
         src: result.secure_url,
         name: file.name,
         provider: "cloudinary",
+
         ...relations,
       });
 

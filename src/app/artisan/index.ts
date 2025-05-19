@@ -109,7 +109,7 @@ artisanRoutes.get("/:id", async (c) => {
     });
 
     return c.json({
-      message: "Artisan retrieved",
+      message: "Artisan Retrieved",
       data: artisan,
     });
   } catch (error) {

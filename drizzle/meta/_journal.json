@@ -295,6 +295,13 @@
       "when": 1747555369781,
       "tag": "0041_gigantic_the_renegades",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "5",
+      "when": 1747695530838,
+      "tag": "0042_stiff_vanisher",
+      "breakpoints": true
     }
   ]
 }
