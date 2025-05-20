@@ -16,6 +16,7 @@ interface Rl {
   gallery_id?: string;
   nin_doc_id?: string;
   cac_doc_id?: string;
+  advertisement_id?: string;
 }
 export const uploadFiles = async (file: File | File[], relations?: Rl) => {
   const files = Array.isArray(file) ? file : [file];

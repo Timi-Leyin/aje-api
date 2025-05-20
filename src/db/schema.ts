@@ -64,7 +64,7 @@ export const users = mysqlTable("users", {
 export const docsVerification = mysqlTable("docs_verification", {
   ...identifier,
   user_id: text().references(() => users.id),
-  note:text(),
+  note: text(),
   ...timestamps,
 });
 
@@ -170,6 +170,19 @@ export const propertyRelations = relations(property, ({ many, one }) => ({
   }),
 }));
 
+export const advertisement = mysqlTable("advertisement", {
+  ...identifier,
+  title: text(),
+  description: text(),
+  cta: text(),
+  cta_link: text(),
+  ...timestamps,
+});
+
+export const advertisementRelations = relations(advertisement, ({ many }) => ({
+  images: many(files),
+}));
+
 export const files = mysqlTable("files", {
   ...identifier,
   src: text("src").notNull(),
@@ -181,6 +194,7 @@ export const files = mysqlTable("files", {
   gallery_id: text("gallery_id").references(() => gallery.id),
   nin_doc_id: text("nin_doc_id").references(() => docsVerification.id),
   cac_doc_id: text("cac_doc_id").references(() => docsVerification.id),
+  advertisement_id: text("advertisement_id").references(() => advertisement.id),
   ...timestamps,
 });
 
@@ -210,6 +224,10 @@ export const fileRelations = relations(files, ({ one }) => ({
     fields: [files.cac_doc_id],
     references: [docsVerification.id],
     relationName: "cacDoc",
+  }),
+  advertisement_id: one(advertisement, {
+    fields: [files.advertisement_id],
+    references: [advertisement.id],
   }),
 }));
 
@@ -366,4 +384,4 @@ export const reportRelations = relations(report, ({ one }) => ({
 
 // export const wishlistRelations = relations(wishlist, ()=>({
 
-// }))
+// }

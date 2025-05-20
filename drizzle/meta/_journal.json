@@ -309,6 +309,13 @@
       "when": 1747739963982,
       "tag": "0043_lowly_ghost_rider",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "5",
+      "when": 1747744093961,
+      "tag": "0044_old_rhino",
+      "breakpoints": true
     }
   ]
 }
