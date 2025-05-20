@@ -13,7 +13,7 @@ import {
   comaprePassword as comparePassword,
   generateJWT,
 } from "../../helpers/secrets";
-import { and, eq, desc } from "drizzle-orm";
+import { and, eq, desc, not } from "drizzle-orm";
 import { loginSchema } from "./validator";
 import { jwt } from "hono/jwt";
 
@@ -119,12 +119,15 @@ adminRoutes.get("/dashboard", async (c) => {
       db.select({ count: review.id }).from(review),
       db.select({ count: files.id }).from(files),
       db.select({ count: transaction.id }).from(transaction),
-    ]); // Recent users - get last 5 users
-    const recentUsers = await db
-      .select()
-      .from(users)
-      .orderBy(desc(users.created_at))
-      .limit(5);
+    ]);
+    // Recent users - get last 5 users
+    const _users = await db.query.users.findMany({
+      where: not(eq(users.user_type, "admin")),
+      orderBy: desc(users.created_at),
+      limit: 5,
+    });
+
+    const recentUsers = _users.map(({ password, ...rest }) => rest);
 
     // Recent transactions - get last 5 transactions
     const recentTransactions = await db
@@ -135,21 +138,17 @@ adminRoutes.get("/dashboard", async (c) => {
 
     return c.json({
       counts: {
-        users: usersCount.length ? usersCount[0].count : 0,
-        properties: propertiesCount.length ? propertiesCount[0].count : 0,
-        products: productsCount.length ? productsCount[0].count : 0,
-        verifications: verificationsCount.length
-          ? verificationsCount[0].count
-          : 0,
-        reviews: reviewsCount.length ? reviewsCount[0].count : 0,
-        files: filesCount.length ? filesCount[0].count : 0,
-        transactions: transactionsCount.length ? transactionsCount[0].count : 0,
+        properties: propertiesCount.length,
+        products: productsCount.length,
+        verifications: verificationsCount.length,
+        reviews: reviewsCount.length,
+        files: filesCount.length,
+        transactions: transactionsCount.length,
       },
       recentUsers,
       recentTransactions,
     });
   } catch (error) {
-    console.error("Dashboard error:", error);
     return c.json({ message: "Error fetching dashboard data", error }, 500);
   }
 });
