@@ -1,0 +1,1 @@
+ALTER TABLE `docs_verification` ADD `note` text;

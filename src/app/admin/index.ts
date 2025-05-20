@@ -13,9 +13,10 @@ import {
   comaprePassword as comparePassword,
   generateJWT,
 } from "../../helpers/secrets";
-import { and, eq, desc, not } from "drizzle-orm";
+import { and, eq, desc, not, isNotNull } from "drizzle-orm";
 import { loginSchema } from "./validator";
 import { jwt } from "hono/jwt";
+import { usersRoutes } from "./users";
 
 const adminRoutes = new Hono();
 
@@ -100,7 +101,7 @@ adminRoutes.use(
   }
 );
 
-// Dashboard statistics endpoint
+// Dashboard statistics endpoint with additional verification statistics
 adminRoutes.get("/dashboard", async (c) => {
   try {
     const [
@@ -120,6 +121,13 @@ adminRoutes.get("/dashboard", async (c) => {
       db.select({ count: files.id }).from(files),
       db.select({ count: transaction.id }).from(transaction),
     ]);
+    
+    // Verification statistics
+    const pendingVerifications = await db
+      .select({ count: users.id })
+      .from(users)
+      .where(eq(users.verification_status, "pending"));
+    
     // Recent users - get last 5 users
     const _users = await db.query.users.findMany({
       where: not(eq(users.user_type, "admin")),
@@ -128,6 +136,23 @@ adminRoutes.get("/dashboard", async (c) => {
     });
 
     const recentUsers = _users.map(({ password, ...rest }) => rest);
+
+    // Recent verification requests - get last 5
+    const recentVerifications = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        first_name: users.first_name,
+        last_name: users.last_name,
+        verification_status: users.verification_status,
+        user_type: users.user_type,
+        created_at: users.created_at,
+        updated_at: users.updated_at
+      })
+      .from(users)
+      .where(isNotNull(users.verification_status))
+      .orderBy(desc(users.updated_at))
+      .limit(5);
 
     // Recent transactions - get last 5 transactions
     const recentTransactions = await db
@@ -138,19 +163,26 @@ adminRoutes.get("/dashboard", async (c) => {
 
     return c.json({
       counts: {
+        users: usersCount.length,
         properties: propertiesCount.length,
         products: productsCount.length,
         verifications: verificationsCount.length,
+        pendingVerifications: pendingVerifications.length,
         reviews: reviewsCount.length,
         files: filesCount.length,
         transactions: transactionsCount.length,
       },
       recentUsers,
+      recentVerifications,
       recentTransactions,
     });
   } catch (error) {
     return c.json({ message: "Error fetching dashboard data", error }, 500);
   }
 });
+
+
+
+adminRoutes.route("/users", usersRoutes);
 
 export { adminRoutes };

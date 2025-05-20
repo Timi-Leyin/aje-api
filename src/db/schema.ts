@@ -64,6 +64,7 @@ export const users = mysqlTable("users", {
 export const docsVerification = mysqlTable("docs_verification", {
   ...identifier,
   user_id: text().references(() => users.id),
+  note:text(),
   ...timestamps,
 });
 

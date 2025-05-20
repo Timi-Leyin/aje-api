@@ -67,7 +67,7 @@ artisanRoutes.get("/", async (c) => {
       db
         .select({ count: sql<number>`COUNT(*)` })
         .from(users)
-        .where(whereClause)
+        .where(and(eq(users.user_type, "artisan"), whereClause))
         .then((res) => res[0].count),
     ]);
 

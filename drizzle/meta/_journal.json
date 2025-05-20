@@ -302,6 +302,13 @@
       "when": 1747695530838,
       "tag": "0042_stiff_vanisher",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "5",
+      "when": 1747739963982,
+      "tag": "0043_lowly_ghost_rider",
+      "breakpoints": true
     }
   ]
 }
