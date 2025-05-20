@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { db } from "../../db";
+import { db } from "../../../db";
 import {
   users,
   docsVerification,
@@ -7,11 +7,11 @@ import {
   files,
   review,
   subscription,
-} from "../../db/schema";
+} from "../../../db/schema";
 import { eq, desc, and, isNotNull, sql, or } from "drizzle-orm";
-import { hashPassword } from "../../helpers/secrets";
-import { MAX_LIMIT_DATA } from "../../constants";
-import { updateUserSchema } from "./validator";
+import { hashPassword } from "../../../helpers/secrets";
+import { MAX_LIMIT_DATA } from "../../../constants";
+import { updateUserSchema } from "../validator";
 import { nanoid } from "nanoid";
 
 const usersRoutes = new Hono();

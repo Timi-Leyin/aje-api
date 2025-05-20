@@ -16,7 +16,7 @@ import {
 import { and, eq, desc, not, isNotNull } from "drizzle-orm";
 import { loginSchema } from "./validator";
 import { jwt } from "hono/jwt";
-import { usersRoutes } from "./users";
+import { usersRoutes } from "./subroutes/users";
 
 const adminRoutes = new Hono();
 
