@@ -15,7 +15,8 @@ import reviewsRoutes from "./app/review";
 import webhooksRoutes from "./app/webhook";
 import plansRoutes from "./app/plan";
 import notificationsRoutes from "./app/notification";
-import reportRoutes from "./app/report"
+import reportRoutes from "./app/report";
+import { adminRoutes } from "./app/admin";
 
 const app = new Hono();
 
@@ -24,7 +25,6 @@ app.get("/", (c) => {
   return c.text("Hello Hono!");
 });
 
-app.route("/auth", authRoutes);
 
 type Users = InferModel<typeof users>;
 type Files = InferModel<typeof files>;
@@ -32,7 +32,9 @@ type Sub = InferModel<typeof subscription>;
 type VAR = Users & { profile_photo: Files; subscription: Sub };
 export type Variables = JwtVariables<VAR>;
 
+app.route("/auth", authRoutes);
 app.route("/paystack", webhooksRoutes);
+app.route("/admin", adminRoutes);
 // PROTECTED
 app.use(
   "/*",
