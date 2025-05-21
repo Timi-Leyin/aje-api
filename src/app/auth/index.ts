@@ -16,7 +16,8 @@ import {
 import { nanoid } from "nanoid";
 import { html } from "hono/html";
 import { sendEmail } from "../../helpers/email";
-
+import { sendNotification } from "../../helpers/notification";
+import { getConnInfo } from "@hono/node-server/conninfo";
 const authRoutes = new Hono();
 
 // Regular signup
@@ -184,13 +185,14 @@ authRoutes.get("/google/callback", async (c) => {
 authRoutes.post("/forgot-password", forgotPasswordValidator, async (c) => {
   try {
     const { email } = c.req.valid("json");
-
+    const info = getConnInfo(c);
     // Check if user exists
     const user = await db.query.users.findFirst({
       where: eq(users.email, email),
     });
 
     if (!user) {
+      console.log("> User not found");
       // Don't reveal if email exists or not
       return c.json({
         message:
@@ -203,6 +205,12 @@ authRoutes.post("/forgot-password", forgotPasswordValidator, async (c) => {
       id: user.id,
       exp: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
     });
+
+    await sendNotification(user.id, {
+      title: "Notice: Password Reset",
+      type: "security",
+      message: `A password reset request has been made for your account from this IP ${info.remote.address} on ${new Date().toLocaleString()}. If this was not you, please ignore this message.`,
+    }).catch((error) => console.log("Failed to send notification"));
 
     // Send reset email
     await sendEmail({
@@ -425,6 +433,12 @@ authRoutes.post("/reset-password", async (c) => {
           password: hashedPassword,
         })
         .where(eq(users.id, user.id));
+
+      await sendNotification(user.id, {
+        title: "Password Reset",
+        type: "security",
+        message: "Your password has been reset successfully.",
+      }).catch((error) => console.log("Failed to send notification"));
 
       return c.json({ message: "Password reset successful" });
     } catch (error) {

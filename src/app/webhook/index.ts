@@ -74,6 +74,7 @@ webhooksRoutes.use("/webhook", async (c) => {
 // Helper functions to handle different webhook events
 async function handleChargeSuccess(eventData: any) {
   const metadata = eventData.metadata as { transactionId: string };
+  // console.log(eventData);
   if (!metadata?.transactionId) {
     console.error("Missing transactionId in metadata");
     return;

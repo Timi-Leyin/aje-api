@@ -58,6 +58,7 @@ export const users = mysqlTable("users", {
   subscription_id: text("subscription_id"),
 
   last_login: timestamp().defaultNow(),
+  fcm_token: text("fcm_token"),
   ...timestamps,
 });
 
@@ -71,7 +72,7 @@ export const docsVerification = mysqlTable("docs_verification", {
 export const docsVerificationRelations = relations(
   docsVerification,
   ({ one, many }) => ({
-    user_id: one(users, {
+    user: one(users, {
       fields: [docsVerification.user_id],
       references: [users.id],
     }),
@@ -110,6 +111,10 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   subscription: one(subscription, {
     fields: [users.subscription_id],
     references: [subscription.id],
+  }),
+  verification: one(docsVerification, {
+    fields: [users.id],
+    references: [docsVerification.user_id],
   }),
 }));
 
@@ -286,6 +291,7 @@ export const notification = mysqlTable("notification", {
   ...identifier,
   title: text(),
   message: text(),
+  type: varchar({ length: 50 }),
   read: boolean().default(false),
   user_id: text().references(() => users.id),
   ...timestamps,

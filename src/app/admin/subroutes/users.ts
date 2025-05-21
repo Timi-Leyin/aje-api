@@ -13,6 +13,7 @@ import { hashPassword } from "../../../helpers/secrets";
 import { MAX_LIMIT_DATA } from "../../../constants";
 import { updateUserSchema } from "../validator";
 import { nanoid } from "nanoid";
+import { sendNotification } from "../../../helpers/notification";
 
 const usersRoutes = new Hono();
 
@@ -36,7 +37,7 @@ usersRoutes.get("/", async (c) => {
       filters.push(eq(users.email, email));
     }
 
-    if (verified) {
+    if (verified && verified != "all") {
       filters.push(eq(users.verified, verified == "true"));
     }
 
@@ -44,12 +45,13 @@ usersRoutes.get("/", async (c) => {
       filters.push(eq(users.user_type, user_type as any));
     }
 
-    const whereClause = filters.length ? or(...filters) : undefined;
+    const whereClause = filters.length ? and(...filters) : undefined;
 
     const [allUsers, total] = await Promise.all([
       db.query.users.findMany({
         where: whereClause,
         with: {
+          verification: true,
           //   gallery: true,
           profile_photo: true,
         },
@@ -205,6 +207,26 @@ usersRoutes.put("/:id/verification", async (c) => {
       });
     }
 
+    // Send different notification messages based on verification status
+    let notificationTitle = "Verification Status Updated";
+    let notificationMessage = "";
+
+    if (status === "verified") {
+      notificationMessage =
+        "Congratulations! Your account has been successfully verified.";
+    } else if (status === "rejected") {
+      notificationMessage =
+        "Your verification request was not approved. Please check make sure your documents are valid.";
+    } else if (status === "pending") {
+      notificationMessage = "Your verification request is now pending review.";
+    }
+
+    await sendNotification(id, {
+      title: notificationTitle,
+      type:"security",
+      message: notificationMessage,
+    }).catch((error) => console.log("Failed to send notification"));
+
     return c.json({
       message: `User verification status changed to ${status}`,
     });
@@ -254,7 +276,6 @@ usersRoutes.get("/stats/overview", async (c) => {
   }
 });
 
-
 usersRoutes.get("/verification/requests", async (c) => {
   try {
     const { page = "1", limit = "30", status, user_type } = c.req.query();
@@ -265,7 +286,8 @@ usersRoutes.get("/verification/requests", async (c) => {
 
     const filters = [isNotNull(users.verification_status)];
 
-    if (status) {
+    console.log(status);
+    if (status && status != "all") {
       filters.push(eq(users.verification_status, status as any));
     }
 
@@ -280,6 +302,12 @@ usersRoutes.get("/verification/requests", async (c) => {
         where: whereClause,
         with: {
           profile_photo: true,
+          verification: {
+            with: {
+              cacDocs: true,
+              ninDocs: true,
+            },
+          },
         },
         limit: limitNumber,
         offset: offset,
@@ -305,6 +333,5 @@ usersRoutes.get("/verification/requests", async (c) => {
     return c.json({ message: "Error fetching verification requests" }, 500);
   }
 });
-
 
 export { usersRoutes };

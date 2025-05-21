@@ -1,11 +1,17 @@
 import { Hono } from "hono";
 import { db } from "../../db";
-import { docsVerification, gallery, users } from "../../db/schema";
+import {
+  docsVerification,
+  gallery,
+  notification,
+  users,
+} from "../../db/schema";
 import { eq } from "drizzle-orm";
 import { updateProfileValidator, uploadAvatarValidator } from "./validator";
 import { deleteFile, uploadFiles } from "../../helpers/files";
 import { Variables } from "../..";
 import { nanoid } from "nanoid";
+import { sendNotification } from "../../helpers/notification";
 
 const profileRoutes = new Hono<{ Variables: Variables }>();
 
@@ -53,6 +59,12 @@ profileRoutes.post("/upload-identification", async (c) => {
     .update(users)
     .set({ verification_status: "pending" })
     .where(eq(users.id, id));
+
+  await sendNotification(id, {
+    title: "Verification pending",
+    type: "security",
+    message: "Your verification request is now pending review.",
+  }).catch((error) => console.log("Failed to send notification"));
 
   return c.json({ message: "Identification documents uploaded successfully" });
 });
@@ -199,6 +211,63 @@ profileRoutes.post("/gallery", async (c) => {
   } catch (error) {
     return c.json({ message: "Internal server error" }, 500);
   }
+});
+
+profileRoutes.post("/fcm-token", async (c) => {
+  const { id } = c.get("jwtPayload");
+  const { fcm_token } = await c.req.json();
+  console.log(id);
+  if (!fcm_token) {
+    return c.json({ message: "FCM token is required" }, 400);
+  }
+  await db.update(users).set({ fcm_token }).where(eq(users.id, id));
+  return c.json({ message: "FCM token saved successfully" });
+});
+
+profileRoutes.get("/notifications", async (c) => {
+  const { id: user_id } = c.get("jwtPayload");
+  const { page = "1", limit = "50" } = c.req.query();
+  const pageNumber = parseInt(page);
+  const limitNumber = Math.max(1, Math.min(parseInt(limit) || 50, 100));
+  const offset = (pageNumber - 1) * limitNumber;
+
+  const [notifications, total] = await Promise.all([
+    db.query.notification.findMany({
+      where: eq(notification.user_id, user_id),
+      limit: limitNumber,
+      offset,
+    }),
+    db.query.notification
+      .findMany({
+        where: eq(notification.user_id, user_id),
+      })
+      .then((n) => n.length),
+  ]);
+
+  return c.json({
+    message: "Notifications retrieved",
+    data: notifications,
+    meta: {
+      total,
+      page: pageNumber,
+      limit: limitNumber,
+      totalPages: Math.ceil(total / limitNumber),
+    },
+  });
+});
+
+profileRoutes.post("/change-user-type", async (c) => {
+  const { id, user_type: currentType } = c.get("jwtPayload");
+  const { user_type } = await c.req.json();
+  const allowedTypes = ["agent", "vendor", "artisan"];
+  if (!user_type || !allowedTypes.includes(user_type)) {
+    return c.json({ message: "Invalid or forbidden user_type" }, 400);
+  }
+  if (currentType === "admin") {
+    return c.json({ message: "Admin user_type cannot be changed" }, 403);
+  }
+  await db.update(users).set({ user_type }).where(eq(users.id, id));
+  return c.json({ message: `User type changed to ${user_type}` });
 });
 
 export default profileRoutes;

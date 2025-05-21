@@ -6,7 +6,7 @@ import authRoutes from "./app/auth";
 import propertyRoutes from "./app/property";
 import profileRoutes from "./app/profile";
 import { jwt, JwtVariables } from "hono/jwt";
-import { eq, InferModel } from "drizzle-orm";
+import { eq, InferModel, sql } from "drizzle-orm";
 import { db } from "./db";
 import { files, subscription, users } from "./db/schema";
 import artisanRoutes from "./app/artisan";
@@ -17,14 +17,18 @@ import plansRoutes from "./app/plan";
 import notificationsRoutes from "./app/notification";
 import reportRoutes from "./app/report";
 import { adminRoutes } from "./app/admin";
-
+import { cors } from "hono/cors";
 const app = new Hono();
 
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+  })
+);
 app.use(logger());
 app.get("/", (c) => {
   return c.text("Hello Hono!");
 });
-
 
 type Users = InferModel<typeof users>;
 type Files = InferModel<typeof files>;
@@ -67,6 +71,25 @@ app.use(
     await next();
   }
 );
+
+app.get("/ads", async (c) => {
+  try {
+    const allAds = await db.query.advertisement.findMany({
+      with: {
+        images: true,
+      },
+      limit: 10,
+      orderBy: sql`RAND()`,
+    });
+    return c.json({
+      data: allAds,
+    });
+  } catch (error: any) {
+    return c.json({ message: "Error fetching advertisements" }, 500);
+  }
+});
+
+
 app.route("/property", propertyRoutes);
 app.route("/profile", profileRoutes);
 app.route("/artisan", artisanRoutes);

@@ -316,6 +316,13 @@
       "when": 1747744093961,
       "tag": "0044_old_rhino",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "5",
+      "when": 1747817301297,
+      "tag": "0045_panoramic_obadiah_stane",
+      "breakpoints": true
     }
   ]
 }

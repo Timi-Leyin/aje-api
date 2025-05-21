@@ -189,7 +189,7 @@ adsRoutes.delete("/:id", async (c) => {
   }
 });
 
-adsRoutes.post("/:id/images", async (c) => {
+adsRoutes.post("/:id/image", async (c) => {
   try {
     const id = c.req.param("id");
     const { images } = await c.req.parseBody();
@@ -204,7 +204,7 @@ adsRoutes.post("/:id/images", async (c) => {
     }
 
     // Validate images
-    if (!images || !Array.isArray(images) || images.length === 0) {
+    if (!images) {
       return c.json({ message: "Images are required" }, 400);
     }
 

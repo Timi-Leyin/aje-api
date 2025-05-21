@@ -194,7 +194,7 @@ adminRoutes.get("/dashboard", async (c) => {
   }
 });
 
-adminRoutes.route("/users", usersRoutes);
 adminRoutes.route("/ads", adsRoutes);
+adminRoutes.route("/users", usersRoutes);
 
 export { adminRoutes };
