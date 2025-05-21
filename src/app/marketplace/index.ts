@@ -12,10 +12,19 @@ const marketplaceRoutes = new Hono<{ Variables: Variables }>();
 
 marketplaceRoutes.post("/product", createProductValidator, async (c) => {
   try {
-    const { id: user_id } = c.get("jwtPayload");
+    const { id: user_id, user_type } = c.get("jwtPayload");
     const { images, price, lat, lon, ...rest } = c.req.valid("form");
     if (!images) {
       return c.json({ message: "Images is required" }, 400);
+    }
+    // Restrict buyers to only one product
+    if (user_type === "buyer") {
+      const existing = await db.query.product.findFirst({
+        where: eq(product.user_id, user_id),
+      });
+      if (existing) {
+        return c.json({ message: "Buyers can only post one product." }, 403);
+      }
     }
     const id = nanoid();
 
