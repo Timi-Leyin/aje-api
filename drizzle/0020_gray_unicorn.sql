@@ -1,0 +1,2 @@
+ALTER TABLE `property` ADD `property_id` text;--> statement-breakpoint
+ALTER TABLE `property` ADD CONSTRAINT `property_property_id_users_id_fk` FOREIGN KEY (`property_id`) REFERENCES `users`(`id`) ON DELETE no action ON UPDATE no action;

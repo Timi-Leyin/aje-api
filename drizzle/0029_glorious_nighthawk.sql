@@ -1,0 +1,1 @@
+ALTER TABLE `files` ADD CONSTRAINT `files_user_id_product_id_fk` FOREIGN KEY (`user_id`) REFERENCES `product`(`id`) ON DELETE no action ON UPDATE no action;
