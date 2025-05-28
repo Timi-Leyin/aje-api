@@ -190,7 +190,8 @@ propertyRoutes.get("/", async (c) => {
     if (type) filters.push(eq(property.type, type));
     if (listingType) filters.push(eq(property.listingType, listingType));
     if (minPrice) filters.push(gte(property.price, parseFloat(minPrice)));
-    if (maxPrice) filters.push(lte(property.price, parseFloat(maxPrice)));
+    // if (maxPrice) filters.push(lte(property.price, parseFloat(maxPrice)));
+    // if (maxPrice) filters.push(lte(property.price, parseFloat(maxPrice)));
     if (bedrooms) filters.push(lte(property.bedrooms, parseFloat(bedrooms)));
     if (bathrooms) filters.push(lte(property.bathrooms, parseFloat(bathrooms)));
     if (city) {
