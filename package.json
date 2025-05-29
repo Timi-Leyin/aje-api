@@ -22,7 +22,7 @@
     "google-auth-library": "^9.15.1",
     "hono": "^4.7.8",
     "mysql2": "^3.14.1",
-    "nanoid": "^5.1.5",
+    "nanoid": "^3.0.0",
     "nodemailer": "^7.0.3",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
@@ -35,5 +35,8 @@
     "drizzle-kit": "^0.31.1",
     "tsx": "^4.7.1",
     "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }
