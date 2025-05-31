@@ -23,8 +23,9 @@ propertyRoutes.post("/", async (c) => {
     }
 
     const json = JSON.parse(forms.json) as PropertyFormData;
-
-    const amenities = json.amenities || [];
+    const amenities = Array.isArray(json?.amenities)
+      ? json?.amenities
+      : String(json?.amenities).split(",").filter(Boolean);
     const id = nanoid();
 
     await db.insert(property).values({
@@ -33,18 +34,18 @@ propertyRoutes.post("/", async (c) => {
       description: json.description,
       title: json.title,
       price: Number(json.price),
-      bedrooms: Number(json.bedrooms),
-      beds: Number(json.bed),
-      bathrooms: Number(json.bathrooms),
-      lat: Number(json.lat),
-      lon: Number(json.lon),
+      bedrooms: Number(json?.bedrooms || 0),
+      beds: Number(json?.bed || 0),
+      bathrooms: Number(json?.bathrooms || 0),
+      lat: Number(json?.lat || 0),
+      lon: Number(json?.lon || 0),
       amenities: amenities.join(","),
       city: json.city,
 
-      youtube_link: json.youtube,
-      type: json.type.toLowerCase(),
-      listingType: json.listingType,
-      address: json.address,
+      youtube_link: json?.youtube,
+      type: json?.type?.toLowerCase(),
+      listingType: json?.listingType,
+      address: json?.address,
       user_id,
     });
 
