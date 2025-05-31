@@ -86,8 +86,10 @@ propertyRoutes.put("/:id", async (c) => {
     // }
     const json = JSON.parse(forms.json) as PropertyFormData;
 
-    const amenities = json.amenities || [];
-
+    // const amenities = json.amenities || [];
+    const amenities = Array.isArray(json?.amenities)
+      ? json?.amenities
+      : String(json?.amenities).split(",").filter(Boolean);
     const allImages = JSON.parse(
       forms?.otherImages || "[]"
     ) as ImageGroupType[];
@@ -108,7 +110,7 @@ propertyRoutes.put("/:id", async (c) => {
       })
       .filter(Boolean);
 
-    console.log(toBeDeleted);
+    // console.log(toBeDeleted);
 
     await Promise.all(
       toBeDeleted.map(async (de) => de && (await deleteFile(de.id)))
