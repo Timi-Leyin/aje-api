@@ -22,7 +22,7 @@ const userTypes = mysqlEnum("user_types", [
 ]);
 
 const fileProviders = mysqlEnum("file_provider", ["cloudinary", "self_hosted"]);
-const authProviders = mysqlEnum("auth_provider", ["google", "default"]);
+const authProviders = mysqlEnum("auth_provider", ["google", "apple", "default"]);
 const verificationStatus = mysqlEnum("verification_status", [
   "pending",
   "verified",

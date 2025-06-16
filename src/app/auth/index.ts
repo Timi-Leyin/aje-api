@@ -18,6 +18,9 @@ import { html } from "hono/html";
 import { sendEmail } from "../../helpers/email";
 import { sendNotification } from "../../helpers/notification";
 import { getConnInfo } from "@hono/node-server/conninfo";
+import { decode, sign } from "hono/jwt";
+import jwt from "jsonwebtoken";
+
 const authRoutes = new Hono();
 
 // Regular signup
@@ -181,6 +184,100 @@ authRoutes.get("/google/callback", async (c) => {
   }
 });
 
+// Apple OAuth routes
+authRoutes.get("/apple/login", async (c) => {
+  const APPLE_AUTH_URL = "https://appleid.apple.com/auth/authorize";
+  const params = new URLSearchParams({
+    client_id: process.env.APPLE_CLIENT_ID!,
+    redirect_uri: `${process.env.BACKEND_URL}/auth/apple/callback`,
+    response_type: "code",
+    scope: "email name",
+    response_mode: "form_post",
+  });
+  return c.redirect(`${APPLE_AUTH_URL}?${params.toString()}`);
+});
+
+authRoutes.post("/apple/callback", async (c) => {
+  try {
+    const body = await c.req.parseBody();
+    const code = body.code as string;
+    const userInfo = body.user ? JSON.parse(body.user as string) : null;
+    if (!code) {
+      return c.json({ message: "Authorization code required" }, 400);
+    }
+
+    // Generate Apple client secret (JWT) using jsonwebtoken for ES256 with kid support
+    function generateAppleClientSecret() {
+      return jwt.sign(
+        {
+          iss: process.env.APPLE_TEAM_ID,
+          iat: Math.floor(Date.now() / 1000),
+          exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
+          aud: "https://appleid.apple.com",
+          sub: process.env.APPLE_CLIENT_ID,
+        },
+        process.env.APPLE_PRIVATE_KEY!.replace(/\\n/g, "\n"),
+        {
+          algorithm: "ES256",
+          keyid: process.env.APPLE_KEY_ID,
+        }
+      );
+    }
+
+    // Exchange code for tokens
+    const tokenResponse = await fetch("https://appleid.apple.com/auth/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        code,
+        client_id: process.env.APPLE_CLIENT_ID!,
+        client_secret: generateAppleClientSecret(),
+        redirect_uri: `${process.env.BACKEND_URL}/auth/apple/callback`,
+        grant_type: "authorization_code",
+      }),
+    });
+    const tokens = await tokenResponse.json();
+    if (!tokens.id_token) {
+      return c.json({ message: "Failed to get Apple ID token" }, 400);
+    }
+    // Decode id_token to get user info using hono/jwt
+    const appleUser: any = decode(tokens.id_token)?.payload;
+    if (!appleUser || !appleUser.email) {
+      return c.json({ message: "Failed to get Apple user info" }, 400);
+    }
+    // Check if user exists
+    const existingUser = await db.query.users.findFirst({
+      where: eq(users.email, appleUser.email),
+    });
+    if (existingUser) {
+      await db
+        .update(users)
+        .set({ last_login: new Date() })
+        .where(eq(users.id, existingUser.id));
+      const token = await generateJWT({ id: existingUser.id });
+      const REDIRECT = `${process.env.EXPO_APP_SCHEME}auth/login?token=${token}`;
+      return c.redirect(REDIRECT);
+    }
+    // If user doesn't exist, redirect to signup with Apple data
+    const firstName = userInfo?.name?.firstName || "";
+    const lastName = userInfo?.name?.lastName || "";
+    
+    const params = new URLSearchParams({
+      email: appleUser.email,
+      firstName: firstName || "Apple",
+      lastName: lastName || "User",
+      auth_provider: "apple",
+    });
+    const REDIRECT = `${
+      process.env.EXPO_APP_SCHEME
+    }auth/sign-up?${params.toString()}`;
+    return c.redirect(REDIRECT);
+  } catch (error) {
+    console.error("Apple auth error:", error);
+    return c.json({ message: "Authentication failed" }, 500);
+  }
+});
+
 // Forgot Password - Only receives email and sends reset link
 authRoutes.post("/forgot-password", forgotPasswordValidator, async (c) => {
   try {
@@ -209,7 +306,9 @@ authRoutes.post("/forgot-password", forgotPasswordValidator, async (c) => {
     await sendNotification(user.id, {
       title: "Notice: Password Reset",
       type: "security",
-      message: `A password reset request has been made for your account from this IP ${info.remote.address} on ${new Date().toLocaleString()}. If this was not you, please ignore this message.`,
+      message: `A password reset request has been made for your account from this IP ${
+        info.remote.address
+      } on ${new Date().toLocaleString()}. If this was not you, please ignore this message.`,
     }).catch((error) => console.log("Failed to send notification"));
 
     // Send reset email
