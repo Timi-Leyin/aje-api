@@ -1,11 +1,12 @@
 import { Hono } from "hono";
 import { Variables } from "../..";
-import { notification, subscription, transaction } from "../../db/schema";
+import { notification, subscription, transaction, users } from "../../db/schema";
 import { eq, sql } from "drizzle-orm";
 import { db } from "../../db";
 import { MAX_LIMIT_DATA } from "../../constants";
 import * as crypto from "crypto";
 import { paystack } from "../../config/paystack";
+import { sendNotification } from "../../helpers/notification";
 
 const webhooksRoutes = new Hono<{ Variables: Variables }>();
 
@@ -52,12 +53,28 @@ webhooksRoutes.use("/webhook", async (c) => {
         await handlePaymentFailed(eventData);
         break;
 
-      // case "subscription.create":
-      //   console.log(eventData);
-      //   break;
+      case "subscription.create":
+        await handleSubscriptionCreate(eventData);
+        break;
 
       case "subscription.not_renew":
         await handleSubscriptionNotRenewed(eventData);
+        break;
+
+      case "subscription.disable":
+        await handleSubscriptionDisable(eventData);
+        break;
+
+      case "subscription.enable":
+        await handleSubscriptionEnable(eventData);
+        break;
+
+      case "subscription.expire":
+        await handleSubscriptionExpire(eventData);
+        break;
+
+      case "subscription.cancel":
+        await handleSubscriptionCancel(eventData);
         break;
 
       default:
@@ -73,12 +90,20 @@ webhooksRoutes.use("/webhook", async (c) => {
 
 // Helper functions to handle different webhook events
 async function handleChargeSuccess(eventData: any) {
+  console.log(`[WEBHOOK] Processing charge.success event:`, eventData);
+  
   const metadata = eventData.metadata as { transactionId: string };
-  // console.log(eventData);
+  
+  console.log({
+    eventData
+  })
+
   if (!metadata?.transactionId) {
-    console.error("Missing transactionId in metadata");
+    console.error("[WEBHOOK] Missing transactionId in metadata");
     return;
   }
+
+  console.log(`[WEBHOOK] Looking for transaction: ${metadata.transactionId}`);
 
   // Find the transaction
   const trx = await db.query.transaction.findFirst({
@@ -90,12 +115,22 @@ async function handleChargeSuccess(eventData: any) {
   });
 
   if (!trx) {
-    console.error(`Transaction not found: ${metadata.transactionId}`);
+    console.error(`[WEBHOOK] Transaction not found: ${metadata.transactionId}`);
     return;
   }
 
+  console.log(`[WEBHOOK] Found transaction:`, {
+    id: trx.id,
+    status: trx.status,
+    paidAt: trx.paid_at,
+    subscriptionId: trx.subscription_id,
+    subscriptionActive: trx.subscription?.active,
+    subscriptionStatus: trx.subscription?.status,
+  });
+
   // If transaction was already paid and has a subscription code, just update the transaction
   if (trx.paid_at && trx.subscription?.code) {
+    console.log(`[WEBHOOK] Transaction already paid, updating fees only`);
     await db
       .update(transaction)
       .set({
@@ -109,18 +144,21 @@ async function handleChargeSuccess(eventData: any) {
   // Create subscription with Paystack
   try {
     if (!trx.user?.email || !trx.plan_code) {
-      console.error("Missing user email or plan code");
+      console.error("[WEBHOOK] Missing user email or plan code");
       return;
     }
 
-    console.log("> Plan Code", trx.plan_code);
+    console.log(`[WEBHOOK] Creating subscription for plan: ${trx.plan_code}`);
 
     const { plan_code } = await paystack.getPlan(trx.plan_code);
+    
     // Create subscription with Paystack
     const subscribeResult = await paystack.createSubscription({
       customer: trx.user.email,
       plan: plan_code,
     });
+
+    console.log(`[WEBHOOK] Paystack subscription created:`, subscribeResult);
 
     // Update transaction status
     await db
@@ -132,22 +170,39 @@ async function handleChargeSuccess(eventData: any) {
       })
       .where(eq(transaction.id, trx.id));
 
+    console.log(`[WEBHOOK] Transaction updated to success`);
+
     // Update subscription details
     if (trx.subscription_id) {
+      console.log(`[WEBHOOK] Updating subscription ${trx.subscription_id} to active`);
+      
       await db
         .update(subscription)
         .set({
           paid_at: new Date(),
           active: true,
           code: subscribeResult.subscription_code,
+          email_token: subscribeResult.email_token,
           status: "success",
           user_id: trx.user_id,
           next_payment_at: new Date(subscribeResult.next_payment_date),
         })
         .where(eq(subscription.id, trx.subscription_id));
+
+      console.log(`[WEBHOOK] Subscription ${trx.subscription_id} activated successfully`);
+    }
+
+    // Send success notification
+    if (trx.user_id) {
+      console.log(`[WEBHOOK] Sending success notification to user ${trx.user_id}`);
+      await sendNotification(trx.user_id, {
+        title: "Subscription Activated",
+        type: "subscription",
+        message: "Your subscription has been successfully activated!",
+      }).catch((error) => console.log("[WEBHOOK] Failed to send notification:", error));
     }
   } catch (error) {
-    console.error("Failed to create subscription:", error);
+    console.error("[WEBHOOK] Failed to create subscription:", error);
   }
 }
 
@@ -155,25 +210,80 @@ async function handleInvoiceCreate(eventData: any) {
   const subscriptionCode = eventData.subscription?.subscription_code;
   if (!subscriptionCode) return;
 
+  const sub = await db.query.subscription.findFirst({
+    where: eq(subscription.code, subscriptionCode),
+    with: { user: true },
+  });
+
+  if (!sub) {
+    console.error(`Subscription not found: ${subscriptionCode}`);
+    return;
+  }
+
   await db
     .update(subscription)
     .set({
       amount: eventData.amount / 100,
-      status: "success",
+      status: "pending",
       next_payment_at: new Date(eventData.subscription.next_payment_date),
     })
     .where(eq(subscription.code, subscriptionCode));
+
+  // Send invoice notification
+  if (sub.user_id) {
+    await sendNotification(sub.user_id, {
+      title: "Subscription Renewal",
+      type: "subscription",
+      message: `Your subscription renewal invoice of ₦${eventData.amount / 100} has been generated.`,
+    }).catch((error) => console.log("Failed to send notification"));
+  }
 }
 
 async function handlePaymentFailed(eventData: any) {
   const subscriptionCode = eventData.subscription?.subscription_code;
   if (!subscriptionCode) return;
 
+  const sub = await db.query.subscription.findFirst({
+    where: eq(subscription.code, subscriptionCode),
+    with: { user: true },
+  });
+
+  if (!sub) {
+    console.error(`Subscription not found: ${subscriptionCode}`);
+    return;
+  }
+
   await db
     .update(subscription)
     .set({
       active: false,
-      expired: false,
+      expired: true,
+      status: "failed",
+    })
+    .where(eq(subscription.code, subscriptionCode));
+
+  // Send payment failed notification
+  if (sub.user_id) {
+    await sendNotification(sub.user_id, {
+      title: "Payment Failed",
+      type: "subscription",
+      message: "Your subscription payment failed. Please update your payment method to continue your subscription.",
+    }).catch((error) => console.log("Failed to send notification"));
+  }
+}
+
+async function handleSubscriptionCreate(eventData: any) {
+  const subscriptionCode = eventData.subscription_code;
+  if (!subscriptionCode) return;
+
+  console.log("Subscription created:", subscriptionCode);
+  
+  // Update subscription with Paystack subscription code
+  await db
+    .update(subscription)
+    .set({
+      code: subscriptionCode,
+      next_payment_at: new Date(eventData.next_payment_date),
     })
     .where(eq(subscription.code, subscriptionCode));
 }
@@ -182,13 +292,163 @@ async function handleSubscriptionNotRenewed(eventData: any) {
   const subscriptionCode = eventData.subscription?.subscription_code;
   if (!subscriptionCode) return;
 
+  const sub = await db.query.subscription.findFirst({
+    where: eq(subscription.code, subscriptionCode),
+    with: { user: true },
+  });
+
+  if (!sub) {
+    console.error(`Subscription not found: ${subscriptionCode}`);
+    return;
+  }
+
   await db
     .update(subscription)
     .set({
       active: false,
-      cancelled:true,
+      cancelled: true,
+      status: "failed",
     })
     .where(eq(subscription.code, subscriptionCode));
+
+  // Send cancellation notification
+  if (sub.user_id) {
+    await sendNotification(sub.user_id, {
+      title: "Subscription Cancelled",
+      type: "subscription",
+      message: "Your subscription has been cancelled. You can reactivate it anytime from your account settings.",
+    }).catch((error) => console.log("Failed to send notification"));
+  }
+}
+
+async function handleSubscriptionDisable(eventData: any) {
+  const subscriptionCode = eventData.subscription_code;
+  if (!subscriptionCode) return;
+
+  const sub = await db.query.subscription.findFirst({
+    where: eq(subscription.code, subscriptionCode),
+    with: { user: true },
+  });
+
+  if (!sub) {
+    console.error(`Subscription not found: ${subscriptionCode}`);
+    return;
+  }
+
+  await db
+    .update(subscription)
+    .set({
+      active: false,
+      status: "failed",
+    })
+    .where(eq(subscription.code, subscriptionCode));
+
+  // Send disable notification
+  if (sub.user_id) {
+    await sendNotification(sub.user_id, {
+      title: "Subscription Disabled",
+      type: "subscription",
+      message: "Your subscription has been temporarily disabled. Please contact support for assistance.",
+    }).catch((error) => console.log("Failed to send notification"));
+  }
+}
+
+async function handleSubscriptionEnable(eventData: any) {
+  const subscriptionCode = eventData.subscription_code;
+  if (!subscriptionCode) return;
+
+  const sub = await db.query.subscription.findFirst({
+    where: eq(subscription.code, subscriptionCode),
+    with: { user: true },
+  });
+
+  if (!sub) {
+    console.error(`Subscription not found: ${subscriptionCode}`);
+    return;
+  }
+
+  await db
+    .update(subscription)
+    .set({
+      active: true,
+      status: "success",
+    })
+    .where(eq(subscription.code, subscriptionCode));
+
+  // Send enable notification
+  if (sub.user_id) {
+    await sendNotification(sub.user_id, {
+      title: "Subscription Reactivated",
+      type: "subscription",
+      message: "Your subscription has been reactivated successfully!",
+    }).catch((error) => console.log("Failed to send notification"));
+  }
+}
+
+async function handleSubscriptionExpire(eventData: any) {
+  const subscriptionCode = eventData.subscription?.subscription_code;
+  if (!subscriptionCode) return;
+
+  const sub = await db.query.subscription.findFirst({
+    where: eq(subscription.code, subscriptionCode),
+    with: { user: true },
+  });
+
+  if (!sub) {
+    console.error(`Subscription not found: ${subscriptionCode}`);
+    return;
+  }
+
+  await db
+    .update(subscription)
+    .set({
+      active: false,
+      expired: true,
+      status: "failed",
+    })
+    .where(eq(subscription.code, subscriptionCode));
+
+  // Send expire notification
+  if (sub.user_id) {
+    await sendNotification(sub.user_id, {
+      title: "Subscription Expired",
+      type: "subscription",
+      message: "Your subscription has expired. Please renew your subscription to continue your service.",
+    }).catch((error) => console.log("Failed to send notification"));
+  }
+}
+
+async function handleSubscriptionCancel(eventData: any) {
+  const subscriptionCode = eventData.subscription?.subscription_code;
+  if (!subscriptionCode) return;
+
+  const sub = await db.query.subscription.findFirst({
+    where: eq(subscription.code, subscriptionCode),
+    with: { user: true },
+  });
+
+  if (!sub) {
+    console.error(`Subscription not found: ${subscriptionCode}`);
+    return;
+  }
+
+  await db
+    .update(subscription)
+    .set({
+      active: false,
+      cancelled: true,
+      status: "failed",
+    })
+    .where(eq(subscription.code, subscriptionCode));
+
+  // Send cancel notification
+  if (sub.user_id) {
+    await sendNotification(sub.user_id, {
+      title: "Subscription Cancelled",
+      type: "subscription",
+      message: "Your subscription has been cancelled. You can reactivate it anytime from your account settings.",
+    }).catch((error) => console.log("Failed to send notification"));
+  }
 }
 
 // Type definition for Paystack webhook events

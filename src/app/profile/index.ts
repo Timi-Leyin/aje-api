@@ -5,6 +5,7 @@ import {
   gallery,
   notification,
   users,
+  userCurrentLocation,
 } from "../../db/schema";
 import { eq } from "drizzle-orm";
 import { updateProfileValidator, uploadAvatarValidator } from "./validator";
@@ -215,12 +216,44 @@ profileRoutes.post("/gallery", async (c) => {
 
 profileRoutes.post("/fcm-token", async (c) => {
   const { id } = c.get("jwtPayload");
-  const { fcm_token } = await c.req.json();
-  console.log(id);
+  const { fcm_token, loc } = await c.req.json();
   if (!fcm_token) {
     return c.json({ message: "FCM token is required" }, 400);
   }
+  
+  // Update FCM token
   await db.update(users).set({ fcm_token }).where(eq(users.id, id));
+  
+  if (loc) {
+    const { lat, lon, address } = loc;
+    
+    // Check if user already has a location record
+    const existingLocation = await db.query.userCurrentLocation.findFirst({
+      where: eq(userCurrentLocation.user_id, id),
+    });
+    
+    if (existingLocation) {
+      await db
+        .update(userCurrentLocation)
+        .set({
+          lat: lat || null,
+          lon: lon || null,
+          address: address || null,
+          manually_added: false, // This is auto-updated from FCM token
+        })
+        .where(eq(userCurrentLocation.user_id, id));
+    } else {
+      await db.insert(userCurrentLocation).values({
+        id: nanoid(),
+        user_id: id,
+        lat: lat || null,
+        lon: lon || null,
+        address: address || null,
+        manually_added: false, // This is auto-updated from FCM token
+      });
+    }
+  }
+  
   return c.json({ message: "FCM token saved successfully" });
 });
 
@@ -268,6 +301,58 @@ profileRoutes.post("/change-user-type", async (c) => {
   }
   await db.update(users).set({ user_type }).where(eq(users.id, id));
   return c.json({ message: `User type changed to ${user_type}` });
+});
+
+profileRoutes.get("/location", async (c) => {
+  const { id } = c.get("jwtPayload");
+  
+  const location = await db.query.userCurrentLocation.findFirst({
+    where: eq(userCurrentLocation.user_id, id),
+  });
+  
+  return c.json({ 
+    message: "Location retrieved", 
+    data: location 
+  });
+});
+
+profileRoutes.post("/update-location", async (c) => {
+  const { id } = c.get("jwtPayload");
+  const { lat, lon, address } = await c.req.json();
+  
+  if (!lat || !lon) {
+    return c.json({ message: "Latitude and longitude are required" }, 400);
+  }
+  
+  // Check if user already has a location record
+  const existingLocation = await db.query.userCurrentLocation.findFirst({
+    where: eq(userCurrentLocation.user_id, id),
+  });
+  
+  if (existingLocation) {
+    // Update existing location
+    await db
+      .update(userCurrentLocation)
+      .set({
+        lat,
+        lon,
+        address: address || null,
+        manually_added: true, // This is manually updated
+      })
+      .where(eq(userCurrentLocation.user_id, id));
+  } else {
+    // Create new location record
+    await db.insert(userCurrentLocation).values({
+      id: nanoid(),
+      user_id: id,
+      lat,
+      lon,
+      address: address || null,
+      manually_added: true, // This is manually updated
+    });
+  }
+  
+  return c.json({ message: "Location updated successfully" });
 });
 
 export default profileRoutes;
