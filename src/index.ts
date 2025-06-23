@@ -30,6 +30,41 @@ app.get("/", (c) => {
   return c.text("Hello Hono!");
 });
 
+app.get("/contact", (c) => {
+  const { refType, refId } = c.req.query();
+  console.log(refType, refId);
+  return c.json({
+    message: "Contact information retrieved successfully",
+    data: {
+      customerSupport: {
+        title: "Customer Support & Troubleshooting",
+        emails: ["Support@illumiacityempire.com", "Help@illumiacityempire.com"],
+      },
+      properties: {
+        title: "Properties",
+        phoneNumbers: ["+2347067211534", "+2348067190514"],
+      },
+      vendorsAndArtisans: {
+        title: "Vendors & Artisans",
+        phoneNumbers: ["+2347037078354"],
+      },
+      salesAndOperations: {
+        title: "Sales & Operations",
+        email: "Sales@illumiacityempire.com",
+        phoneNumber: "+2347067211534",
+      },
+      enquiry: {
+        title: "Enquiry",
+        email: "Info@illumiacityempire.com",
+      },
+      feedback: {
+        title: "Feedback",
+        email: "Feedback@Illumiacityempire.com",
+      },
+    },
+  });
+});
+
 type Users = InferModel<typeof users>;
 type Files = InferModel<typeof files>;
 type Sub = InferModel<typeof subscription>;
@@ -53,7 +88,7 @@ app.use(
         profile_photo: true,
         // gallery:true,
         subscription: true,
-        properties: true,
+        // properties: true,
       },
     });
 
@@ -89,7 +124,6 @@ app.get("/ads", async (c) => {
   }
 });
 
-
 app.route("/property", propertyRoutes);
 app.route("/profile", profileRoutes);
 app.route("/artisan", artisanRoutes);
@@ -102,12 +136,11 @@ app.route("/report", reportRoutes);
 serve(
   {
     fetch: app.fetch,
-    port: 7000,
+    port: 7001,
   },
   (info) => {
     console.log(`Server is running on http://localhost:${info.port}`);
   }
 );
-
 
 export default app;

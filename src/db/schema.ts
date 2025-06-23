@@ -116,6 +116,10 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     fields: [users.id],
     references: [docsVerification.user_id],
   }),
+  currentLocation: one(userCurrentLocation, {
+    fields: [users.id],
+    references: [userCurrentLocation.user_id],
+  }),
 }));
 
 export const product = mysqlTable("product", {
@@ -304,6 +308,23 @@ export const notificationRelations = relations(notification, ({ one }) => ({
   }),
 }));
 
+export const userCurrentLocation = mysqlTable("user_current_location", {
+  ...identifier,
+  user_id: text().references(() => users.id),
+  lat: float(),
+  lon: float(),
+  address: text(),
+  manually_added: boolean().default(false),
+  ...timestamps,
+});
+
+export const userCurrentLocationRelations = relations(userCurrentLocation, ({ one }) => ({
+  user: one(users, {
+    fields: [userCurrentLocation.user_id],
+    references: [users.id],
+  }),
+}));
+
 export const subscription = mysqlTable("subscription", {
   ...identifier,
   user_id: text().references(() => users.id),
@@ -311,6 +332,7 @@ export const subscription = mysqlTable("subscription", {
   plan_name: text(),
   plan_code: text().notNull(),
   code: text(),
+  email_token: text(),
   active: boolean(),
   expired: boolean(),
   cancelled: boolean(),

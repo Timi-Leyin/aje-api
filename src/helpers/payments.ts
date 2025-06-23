@@ -92,6 +92,53 @@ interface cancelSubscriptionParams {
 }
 interface cancelSubscriptionResponse {}
 
+interface verifyTransactionResponse {
+  id: number;
+  domain: string;
+  amount: number;
+  currency: string;
+  source: string;
+  reason: string;
+  recipient: number;
+  status: string;
+  transfer_code: string;
+  titan_code: string;
+  transferred_at: string;
+  idempotency_key: string;
+  integration: number;
+  fee_charged: number;
+  subaccount: any;
+  account: any;
+  customer: any;
+  authorization: any;
+  channel: string;
+  gateway_response: string;
+  fees_breakdown: any;
+  metadata: any;
+  log: any;
+  fees: number;
+  paid_at: string;
+  requested_amount: number;
+  pos_transaction_data: any;
+  source_details: any;
+  destination_details: any;
+  authorization_url: string;
+  transfer_fee: number;
+  transfer_fee_breakdown: any;
+  transaction_date: string;
+  plan: string;
+  subaccount_code: string;
+  account_code: string;
+  customer_code: string;
+  customer_info: any;
+  customer_details: any;
+  requested_currency: string;
+  transaction_type: string;
+  reference: string;
+  created_at: string;
+  updated_at: string;
+}
+
 const Paystack = class Paystack {
   private options: Options;
   private api: AxiosInstance;
@@ -194,6 +241,36 @@ const Paystack = class Paystack {
       AxiosResponse<cancelSubscriptionResponse, any>
     >("/subscription/disable", data);
     return response.data.data;
+  };
+
+  /**
+   * VERIFY TRANSACTION
+   **/
+
+  verifyTransaction = async (reference: string) => {
+    try {
+      const response = await this.api.get<
+        AxiosResponse<verifyTransactionResponse, any>
+      >(`/transaction/verify/${reference}`);
+      return response.data.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  /**
+   * GET SUBSCRIPTION DETAILS
+   **/
+
+  getSubscriptionDetails = async (code: string) => {
+    try {
+      const response = await this.api.get<
+        AxiosResponse<createSubResponse, any>
+      >(`/subscription/${code}`);
+      return response.data.data;
+    } catch (error) {
+      throw error;
+    }
   };
 };
 
