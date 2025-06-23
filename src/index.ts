@@ -136,7 +136,7 @@ app.route("/report", reportRoutes);
 serve(
   {
     fetch: app.fetch,
-    port: 7001,
+    port: Number(process.env.ENV_PORT) || 7000,
   },
   (info) => {
     console.log(`Server is running on http://localhost:${info.port}`);
