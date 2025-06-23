@@ -7,6 +7,7 @@ import { files, product } from "../../db/schema";
 import { deleteFile, uploadFiles } from "../../helpers/files";
 import { MAX_LIMIT_DATA } from "../../constants";
 import { and, eq, gte, like, lte, or, sql } from "drizzle-orm";
+import { getActiveSubscription } from "../../helpers/subscription";
 
 const marketplaceRoutes = new Hono<{ Variables: Variables }>();
 
@@ -62,22 +63,19 @@ marketplaceRoutes.get("/product", async (c) => {
 
     const pageNumber = parseInt(page);
     const limitNumber = Math.min(parseInt(limit) || 30, MAX_LIMIT_DATA);
-    // const limitNumber = parseInt(limit);
     const offset = (pageNumber - 1) * limitNumber;
 
     const filters = [];
 
-    // BUILD QUERY
     if (type) filters.push(eq(product.type, type));
     if (minPrice) filters.push(gte(product.price, parseFloat(minPrice)));
     if (maxPrice) filters.push(lte(product.price, parseFloat(maxPrice)));
     if (city) {
-      const words = city.trim().split(/\s+/).filter(Boolean); // ["Ikeja", "Lagos"]
+      const words = city.trim().split(/\s+/).filter(Boolean);
       filters.push(like(product.city, `%${city}%`));
       const conditions = words.map((word) => like(product.city, `%${word}%`));
       filters.push(or(...conditions));
     }
-
     if (search) {
       const words = search.trim().split(/\s+/).filter(Boolean);
       const fieldMatches = words.map((word) =>
@@ -87,12 +85,12 @@ marketplaceRoutes.get("/product", async (c) => {
           like(product.description, `%${word}%`)
         )
       );
-
       filters.push(or(...fieldMatches));
     }
 
     const whereClause = filters.length ? and(...filters) : undefined;
 
+    // Fetch products with owner info
     const [products, total] = await Promise.all([
       db.query.product.findMany({
         where: whereClause,
@@ -100,9 +98,8 @@ marketplaceRoutes.get("/product", async (c) => {
         offset: offset,
         orderBy: sql`RAND()`,
         with: {
-          images: {
-            limit: 2,
-          },
+          images: { limit: 2 },
+          user: { columns: { id: true, user_type: true } },
         },
       }),
       db
@@ -112,14 +109,33 @@ marketplaceRoutes.get("/product", async (c) => {
         .then((res) => res[0].count),
     ]);
 
+    // Filter products based on owner type and subscription
+    const filteredProducts = [];
+    for (const prod of products) {
+      if (!prod.user) continue;
+      const ownerType = prod.user.user_type;
+      if (ownerType === "buyer" || ownerType === "admin") {
+        filteredProducts.push(prod);
+        continue;
+      }
+      if (ownerType === "vendor") {
+        const sub = await getActiveSubscription(prod.user.id);
+        if (sub && sub.active && !sub.expired && sub.status === "success") {
+          filteredProducts.push(prod);
+        }
+        continue;
+      }
+      // For other user types, skip
+    }
+
     return c.json({
       message: "Products retrieved",
-      data: products,
+      data: filteredProducts,
       meta: {
-        total,
+        total: filteredProducts.length,
         page: pageNumber,
         limit: limitNumber,
-        totalPages: Math.ceil(total / limitNumber),
+        totalPages: Math.ceil(filteredProducts.length / limitNumber),
       },
     });
   } catch (error) {

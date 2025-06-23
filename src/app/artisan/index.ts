@@ -4,6 +4,7 @@ import { MAX_LIMIT_DATA } from "../../constants";
 import { and, eq, like, or, sql } from "drizzle-orm";
 import { users } from "../../db/schema";
 import { db } from "../../db";
+import { getActiveSubscription } from "../../helpers/subscription";
 
 const artisanRoutes = new Hono<{ Variables: Variables }>();
 
@@ -71,14 +72,23 @@ artisanRoutes.get("/", async (c) => {
         .then((res) => res[0].count),
     ]);
 
+    // Filter artisans by active subscription
+    const filteredArtisans = [];
+    for (const artisan of artisans) {
+      const sub = await getActiveSubscription(artisan.id);
+      if (sub && sub.active && !sub.expired && sub.status === "success") {
+        filteredArtisans.push(artisan);
+      }
+    }
+
     return c.json({
       message: "Artisans retrieved",
-      data: artisans,
+      data: filteredArtisans,
       meta: {
-        total,
+        total: filteredArtisans.length,
         page: pageNumber,
         limit: limitNumber,
-        totalPages: Math.ceil(total / limitNumber),
+        totalPages: Math.ceil(filteredArtisans.length / limitNumber),
       },
     });
   } catch (error) {

@@ -125,4 +125,49 @@ export function getDaysUntilExpiry(subscription: any): number | null {
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   
   return diffDays;
+}
+
+/**
+ * Get the user's active subscription (if any)
+ */
+export async function getActiveSubscription(userId: string) {
+  return db.query.subscription.findFirst({
+    where: and(
+      eq(subscription.user_id, userId),
+      eq(subscription.active, true),
+      eq(subscription.expired, false),
+      eq(subscription.cancelled, false)
+    ),
+  });
+}
+
+/**
+ * Get the user's plan name (case-insensitive, returns lowercased)
+ */
+export async function getUserPlan(userId: string) {
+  const sub = await getActiveSubscription(userId);
+  if (!sub || !sub.plan_name) return null;
+  return sub.plan_name.toLowerCase();
+}
+
+/**
+ * Get vendor product limit by plan name
+ */
+export function getVendorProductLimit(planName: string): number | null {
+  const name = planName.toLowerCase();
+  if (name === "vendor starter") return 5;
+  if (name === "vendor pro") return 20;
+  if (name === "vendor elite") return null; // unlimited
+  return 0;
+}
+
+/**
+ * Get artisan gallery image limit by plan name
+ */
+export function getArtisanGalleryLimit(planName: string): number | null {
+  const name = planName.toLowerCase();
+  if (name === "illumia starter") return 5;
+  if (name === "illumia growth") return 20;
+  if (name === "illumia pro") return null; // unlimited
+  return 0;
 } 

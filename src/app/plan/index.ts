@@ -440,22 +440,24 @@ plansRoutes.post("/subscribe", async (c) => {
       `[SUBSCRIPTION] User ${userId} (${email}) attempting to subscribe to plan ${planId}`
     );
 
-    // Check if user already has an active subscription to the same plan
-    if (sub && sub.plan_code === planId && sub.active) {
-      console.log(
-        `[SUBSCRIPTION] User ${userId} already has active subscription to plan ${planId}`
-      );
-      return c.json({ message: "You already Subscribed to this plan" }, 400);
-    }
-
-    // Check for any existing subscriptions and cancel them
+    // Always cancel all previous subscriptions before creating a new one
     const { disabledCount, errors } = await disableAllPreviousSubscriptions(userId, email);
-    
     if (errors.length > 0) {
       console.log(`[SUBSCRIPTION] Warnings during subscription cancellation:`, errors);
     }
-
     console.log(`[SUBSCRIPTION] Disabled ${disabledCount} previous subscriptions for user ${userId}`);
+
+    // Check if user already has an active subscription to the same plan (should not happen, but for safety)
+    const activeSub = await db.query.subscription.findFirst({
+      where: and(
+        eq(subscription.user_id, userId),
+        eq(subscription.plan_code, planId),
+        eq(subscription.active, true)
+      ),
+    });
+    if (activeSub) {
+      return c.json({ message: "You already Subscribed to this plan" }, 400);
+    }
 
     let customer;
     try {
@@ -563,7 +565,7 @@ plansRoutes.post("/subscribe", async (c) => {
       message: "Payment initialized successfully",
       url: paymentResponse.authorization_url,
       data: {
-        previousSubscriptionCancelled: false,
+        previousSubscriptionCancelled: true,
         newPlan: {
           name: parsedPlanName.planName,
           amount: plan.amount / 100,
