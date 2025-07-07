@@ -62,7 +62,7 @@ authRoutes.post("/login", loginValidator, async (c) => {
   });
 
   if (!user) {
-    return c.json({ message: "Incorrect password or username" }, 404);
+    return c.json({ message: "Incorrect password or email" }, 404);
   }
 
   if (!user.password && user.auth_provider != "default") {
@@ -72,7 +72,7 @@ authRoutes.post("/login", loginValidator, async (c) => {
   const isValid = await comaprePassword(password, user.password!);
 
   if (!isValid) {
-    return c.json({ message: `Incorrect password or username` }, 400);
+    return c.json({ message: `Incorrect password or email` }, 400);
   }
 
   const token = await generateJWT({

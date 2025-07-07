@@ -8,6 +8,7 @@
     "db:generate": "npx drizzle-kit generate",
     "db:migrate": "npx drizzle-kit migrate",
     "db:sync": "yarn db:push && yarn db:generate",
+    "db:studio": "npx drizzle-kit studio",
     "script:update-property-owners": "tsx src/scripts/update-property-owners.ts",
     "update-property-owners": "tsx update-property-owners.js",
     "check-expired-subscriptions": "tsx src/scripts/check-expired-subscriptions.ts"

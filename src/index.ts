@@ -27,7 +27,10 @@ app.use(
 );
 app.use(logger());
 app.get("/", (c) => {
-  return c.text("Hello Hono!");
+  return c.json({
+    ios: "v2.1.1(24)",
+    android: "v2.1.1(24)",
+  });
 });
 
 app.get("/contact", (c) => {

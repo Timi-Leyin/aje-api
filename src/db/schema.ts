@@ -341,6 +341,7 @@ export const subscription = mysqlTable("subscription", {
   paid_at: datetime(),
   amount: float(),
   reties: int(),
+  cancel_at_period_end: boolean().default(false),
   ...timestamps,
 });
 

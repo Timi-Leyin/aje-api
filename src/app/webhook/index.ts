@@ -435,18 +435,18 @@ async function handleSubscriptionCancel(eventData: any) {
   await db
     .update(subscription)
     .set({
-      active: false,
-      cancelled: true,
-      status: "failed",
+      cancel_at_period_end: true,
     })
     .where(eq(subscription.code, subscriptionCode));
 
   // Send cancel notification
   if (sub.user_id) {
     await sendNotification(sub.user_id, {
-      title: "Subscription Cancelled",
+      title:
+        "Subscription will be cancelled at the end of the current billing period",
       type: "subscription",
-      message: "Your subscription has been cancelled. You can reactivate it anytime from your account settings.",
+      message:
+        "Your subscription will be cancelled at the end of the current billing period. You can reactivate it anytime from your account settings.",
     }).catch((error) => console.log("Failed to send notification"));
   }
 }

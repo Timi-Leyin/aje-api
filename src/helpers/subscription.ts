@@ -1,6 +1,6 @@
 import { db } from "../db";
 import { subscription } from "../db/schema";
-import { eq, lt, and, isNotNull } from "drizzle-orm";
+import { eq, lt, and, isNotNull, or } from "drizzle-orm";
 import { sendNotification } from "./notification";
 
 /**
@@ -11,17 +11,22 @@ export async function checkAndUpdateExpiredSubscriptions() {
   console.log("[SUBSCRIPTION EXPIRY] Starting expired subscription check...");
 
   try {
-    // Find subscriptions that have passed their next_payment_date and are still active
+    // Find subscriptions that have passed their next_payment_date and are still active or are set to cancel at period end
     const expiredSubscriptions = await db.query.subscription.findMany({
       where: and(
         isNotNull(subscription.next_payment_at),
         lt(subscription.next_payment_at, new Date()),
-        eq(subscription.active, true)
+        or(
+          eq(subscription.active, true),
+          eq(subscription.cancel_at_period_end, true)
+        )
       ),
       with: { user: true },
     });
 
-    console.log(`[SUBSCRIPTION EXPIRY] Found ${expiredSubscriptions.length} expired subscriptions`);
+    console.log(
+      `[SUBSCRIPTION EXPIRY] Found ${expiredSubscriptions.length} expired subscriptions`
+    );
 
     if (expiredSubscriptions.length === 0) {
       console.log("[SUBSCRIPTION EXPIRY] No expired subscriptions found");
@@ -33,7 +38,9 @@ export async function checkAndUpdateExpiredSubscriptions() {
 
     for (const sub of expiredSubscriptions) {
       try {
-        console.log(`[SUBSCRIPTION EXPIRY] Processing expired subscription: ${sub.id}`);
+        console.log(
+          `[SUBSCRIPTION EXPIRY] Processing expired subscription: ${sub.id}`
+        );
 
         // Update subscription status
         await db
@@ -41,37 +48,56 @@ export async function checkAndUpdateExpiredSubscriptions() {
           .set({
             active: false,
             expired: true,
+            cancelled: sub.cancel_at_period_end,
             status: "failed",
           })
           .where(eq(subscription.id, sub.id));
 
-        // Send expiration notification
+        // Send expiration or cancellation notification
         if (sub.user_id) {
+          const message = sub.cancel_at_period_end
+            ? "Your subscription has been cancelled as per your request."
+            : "Your subscription has expired. Please renew your subscription to continue your service.";
           await sendNotification(sub.user_id, {
-            title: "Subscription Expired",
+            title: sub.cancel_at_period_end
+              ? "Subscription Cancelled"
+              : "Subscription Expired",
             type: "subscription",
-            message: "Your subscription has expired. Please renew your subscription to continue your service.",
+            message,
           }).catch((error) => {
-            console.error(`[SUBSCRIPTION EXPIRY] Failed to send notification for subscription ${sub.id}:`, error);
-            errors.push(`Notification failed for subscription ${sub.id}: ${error}`);
+            console.error(
+              `[SUBSCRIPTION EXPIRY] Failed to send notification for subscription ${sub.id}:`,
+              error
+            );
+            errors.push(
+              `Notification failed for subscription ${sub.id}: ${error}`
+            );
           });
         }
 
         processed++;
-        console.log(`[SUBSCRIPTION EXPIRY] Successfully processed expired subscription: ${sub.id}`);
-
+        console.log(
+          `[SUBSCRIPTION EXPIRY] Successfully processed expired subscription: ${sub.id}`
+        );
       } catch (error) {
-        console.error(`[SUBSCRIPTION EXPIRY] Error processing subscription ${sub.id}:`, error);
+        console.error(
+          `[SUBSCRIPTION EXPIRY] Error processing subscription ${sub.id}:`,
+          error
+        );
         errors.push(`Failed to process subscription ${sub.id}: ${error}`);
       }
     }
 
-    console.log(`[SUBSCRIPTION EXPIRY] Completed processing. Processed: ${processed}, Errors: ${errors.length}`);
+    console.log(
+      `[SUBSCRIPTION EXPIRY] Completed processing. Processed: ${processed}, Errors: ${errors.length}`
+    );
 
     return { processed, errors };
-
   } catch (error) {
-    console.error("[SUBSCRIPTION EXPIRY] Error in expired subscription check:", error);
+    console.error(
+      "[SUBSCRIPTION EXPIRY] Error in expired subscription check:",
+      error
+    );
     throw error;
   }
 }
@@ -135,8 +161,7 @@ export async function getActiveSubscription(userId: string) {
     where: and(
       eq(subscription.user_id, userId),
       eq(subscription.active, true),
-      eq(subscription.expired, false),
-      eq(subscription.cancelled, false)
+      eq(subscription.expired, false)
     ),
   });
 }
