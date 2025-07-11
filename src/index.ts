@@ -75,6 +75,7 @@ type VAR = Users & { profile_photo: Files; subscription: Sub };
 export type Variables = JwtVariables<VAR>;
 
 app.route("/auth", authRoutes);
+app.route("/property", propertyRoutes);
 app.route("/paystack", webhooksRoutes);
 app.route("/admin", adminRoutes);
 // PROTECTED
@@ -127,7 +128,7 @@ app.get("/ads", async (c) => {
   }
 });
 
-app.route("/property", propertyRoutes);
+// app.route("/property", propertyRoutes);
 app.route("/profile", profileRoutes);
 app.route("/artisan", artisanRoutes);
 app.route("/marketplace", marketplaceRoutes);

@@ -3,14 +3,145 @@ import { editPropertyValidator } from "./validator";
 import { deleteFile, uploadFiles } from "../../helpers/files";
 import { nanoid } from "nanoid";
 import { db } from "../../db";
-import { files, property, review, schedule } from "../../db/schema";
+import { files, property, review, schedule, users } from "../../db/schema";
 import { and, eq, gte, like, lte, or, sql } from "drizzle-orm";
 import { Variables } from "../..";
 import { PropertyFormData } from "./types";
 import { MAX_LIMIT_DATA } from "../../constants";
 import { ImageGroupType } from "../marketplace";
+import { jwt } from "hono/jwt";
 
 const propertyRoutes = new Hono<{ Variables: Variables }>();
+
+propertyRoutes.get("/", async (c) => {
+  try {
+    const {
+      page = "1",
+      limit = "30",
+      city,
+      type,
+      listingType,
+      minPrice,
+      amenities,
+      bedrooms,
+      bathrooms,
+      maxPrice,
+      search,
+    } = c.req.query();
+
+    const pageNumber = parseInt(page);
+    const limitNumber = Math.min(parseInt(limit) || 30, MAX_LIMIT_DATA);
+    // const limitNumber = parseInt(limit);
+    const offset = (pageNumber - 1) * limitNumber;
+
+    const filters = [];
+
+    // BUILD QUERY
+    if (type) filters.push(eq(property.type, type));
+    if (listingType) filters.push(eq(property.listingType, listingType));
+    if (minPrice) filters.push(gte(property.price, parseFloat(minPrice)));
+    // if (maxPrice) filters.push(lte(property.price, parseFloat(maxPrice)));
+    // if (maxPrice) filters.push(lte(property.price, parseFloat(maxPrice)));
+    if (bedrooms) filters.push(lte(property.bedrooms, parseFloat(bedrooms)));
+    if (bathrooms) filters.push(lte(property.bathrooms, parseFloat(bathrooms)));
+    if (city) {
+      const words = city.trim().split(/\s+/).filter(Boolean); // ["Ikeja", "Lagos"]
+      filters.push(like(property.city, `%${city}%`));
+      const conditions = words.map((word) => like(property.city, `%${word}%`));
+      filters.push(or(...conditions));
+    }
+    if (amenities) {
+      const words = amenities.trim().split(",").filter(Boolean); // ["Ikeja", "Lagos"]
+      const conditions = words.map((word) =>
+        like(property.amenities, `%${word}%`)
+      );
+      filters.push(or(...conditions));
+    }
+
+    if (search) {
+      const words = search.trim().split(/\s+/).filter(Boolean);
+      const fieldMatches = words.map((word) =>
+        or(
+          like(property.city, `%${word}%`),
+          like(property.title, `%${word}%`),
+          like(property.description, `%${word}%`),
+          like(property.amenities, `%${word}%`),
+          like(property.address, `%${word}%`)
+        )
+      );
+
+      filters.push(or(...fieldMatches));
+    }
+
+    const whereClause = filters.length ? and(...filters) : undefined;
+
+    const [properties, total] = await Promise.all([
+      db.query.property.findMany({
+        where: whereClause,
+        limit: limitNumber,
+        offset: offset,
+        orderBy: sql`RAND()`,
+        with: {
+          images: {
+            limit: 5,
+          },
+        },
+      }),
+      db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(property)
+        .where(whereClause)
+        .then((res) => res[0].count),
+    ]);
+
+    return c.json({
+      message: "Properties retrieved",
+      data: properties,
+      meta: {
+        total,
+        page: pageNumber,
+        limit: limitNumber,
+        totalPages: Math.ceil(total / limitNumber),
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return c.json({ message: "Internal server error" }, 500);
+  }
+});
+
+// PROTECTED
+propertyRoutes.use(
+  "/*",
+  jwt({
+    secret: process.env.JWT_SECRET,
+  }),
+  async (c, next) => {
+    const { id } = c.get("jwtPayload");
+    const profile = await db.query.users.findFirst({
+      where: eq(users.id, id),
+      with: {
+        profile_photo: true,
+        // gallery:true,
+        subscription: true,
+        // properties: true,
+      },
+    });
+
+    if (!profile) {
+      return c.json({ message: "Unauthorized" }, 401);
+    }
+
+    // const sub = await db.query.subscription.findMany({
+    //   where: eq(subscription.user_id, profile?.id),
+    // });
+
+    // console.log(profile.subscription);
+    const { password, ...rest } = profile as any;
+    c.set("jwtPayload", rest);
+    await next();
+  }
+);
 
 propertyRoutes.post("/", async (c) => {
   const { id: user_id } = c.get("jwtPayload");
@@ -162,103 +293,6 @@ propertyRoutes.put("/:id", async (c) => {
     return c.json({ message: "Property updated" });
   } catch (error) {
     console.log(error);
-    return c.json({ message: "Internal server error" }, 500);
-  }
-});
-
-propertyRoutes.get("/", async (c) => {
-  try {
-    const {
-      page = "1",
-      limit = "30",
-      city,
-      type,
-      listingType,
-      minPrice,
-      amenities,
-      bedrooms,
-      bathrooms,
-      maxPrice,
-      search,
-    } = c.req.query();
-
-    const pageNumber = parseInt(page);
-    const limitNumber = Math.min(parseInt(limit) || 30, MAX_LIMIT_DATA);
-    // const limitNumber = parseInt(limit);
-    const offset = (pageNumber - 1) * limitNumber;
-
-    const filters = [];
-
-    // BUILD QUERY
-    if (type) filters.push(eq(property.type, type));
-    if (listingType) filters.push(eq(property.listingType, listingType));
-    if (minPrice) filters.push(gte(property.price, parseFloat(minPrice)));
-    // if (maxPrice) filters.push(lte(property.price, parseFloat(maxPrice)));
-    // if (maxPrice) filters.push(lte(property.price, parseFloat(maxPrice)));
-    if (bedrooms) filters.push(lte(property.bedrooms, parseFloat(bedrooms)));
-    if (bathrooms) filters.push(lte(property.bathrooms, parseFloat(bathrooms)));
-    if (city) {
-      const words = city.trim().split(/\s+/).filter(Boolean); // ["Ikeja", "Lagos"]
-      filters.push(like(property.city, `%${city}%`));
-      const conditions = words.map((word) => like(property.city, `%${word}%`));
-      filters.push(or(...conditions));
-    }
-    if (amenities) {
-      const words = amenities.trim().split(",").filter(Boolean); // ["Ikeja", "Lagos"]
-      const conditions = words.map((word) =>
-        like(property.amenities, `%${word}%`)
-      );
-      filters.push(or(...conditions));
-    }
-
-    if (search) {
-      const words = search.trim().split(/\s+/).filter(Boolean);
-      const fieldMatches = words.map((word) =>
-        or(
-          like(property.city, `%${word}%`),
-          like(property.title, `%${word}%`),
-          like(property.description, `%${word}%`),
-          like(property.amenities, `%${word}%`),
-          like(property.address, `%${word}%`)
-        )
-      );
-
-      filters.push(or(...fieldMatches));
-    }
-
-    const whereClause = filters.length ? and(...filters) : undefined;
-
-    const [properties, total] = await Promise.all([
-      db.query.property.findMany({
-        where: whereClause,
-        limit: limitNumber,
-        offset: offset,
-        orderBy: sql`RAND()`,
-        with: {
-          images: {
-            limit: 5,
-          },
-        },
-      }),
-      db
-        .select({ count: sql<number>`COUNT(*)` })
-        .from(property)
-        .where(whereClause)
-        .then((res) => res[0].count),
-    ]);
-
-    return c.json({
-      message: "Properties retrieved",
-      data: properties,
-      meta: {
-        total,
-        page: pageNumber,
-        limit: limitNumber,
-        totalPages: Math.ceil(total / limitNumber),
-      },
-    });
-  } catch (error) {
-    console.error(error);
     return c.json({ message: "Internal server error" }, 500);
   }
 });
