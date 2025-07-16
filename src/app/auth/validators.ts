@@ -3,15 +3,29 @@ import { z } from "zod";
 
 export const signUpValidator = zValidator(
   "json",
-  z.object({
-    firstName: z.string(),
-    lastName: z.string(),
-    password: z.string(),
-    phone: z.string(),
-    email: z.string(),
-    // # Related to db/schema.ts
-    userType: z.enum(["buyer", "agent", "vendor", "artisan"]),
-  })
+  z
+    .object({
+      firstName: z.string(),
+      lastName: z.string(),
+      phone: z.string(),
+      email: z.string(),
+      userType: z.enum(["buyer", "agent", "vendor", "artisan"]),
+      auth_provider: z.enum(["google", "apple"]).optional(),
+      password: z.string().optional(),
+    })
+    .refine(
+      (data) => {
+        // If not using OAuth, password is required
+        if (!data.auth_provider) return !!data.password;
+        // If using OAuth, password must not be required
+        if (["google", "apple"].includes(data.auth_provider)) return true;
+        return !!data.password;
+      },
+      {
+        message: "Password is required unless signing up with Google or Apple",
+        path: ["password"],
+      }
+    )
 );
 
 export const loginValidator = zValidator(

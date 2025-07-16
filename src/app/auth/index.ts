@@ -25,9 +25,15 @@ const authRoutes = new Hono();
 
 // Regular signup
 authRoutes.post("/signup", signUpValidator, async (c) => {
-  const { email, firstName, lastName, password, phone, userType } =
-    c.req.valid("json");
-
+  const {
+    email,
+    firstName,
+    lastName,
+    password,
+    phone,
+    userType,
+    auth_provider,
+  } = c.req.valid("json");
   const user = await db.query.users.findFirst({
     where: eq(users.email, email),
   });
@@ -37,7 +43,14 @@ authRoutes.post("/signup", signUpValidator, async (c) => {
   }
 
   const id = nanoid();
-  const hashed = await hashPassword(password);
+  let hashed: string | undefined = undefined;
+  if (!auth_provider && !password) {
+    return c.json({ message: "Password is required" }, 400);
+  }
+  if (!auth_provider && password) {
+    // Regular signup, require password
+    hashed = await hashPassword(password);
+  }
   await db.insert(users).values({
     id,
     email,
@@ -46,6 +59,7 @@ authRoutes.post("/signup", signUpValidator, async (c) => {
     phone,
     user_type: userType,
     password: hashed,
+    auth_provider: auth_provider || "default",
   });
 
   const token = await generateJWT({
@@ -66,7 +80,10 @@ authRoutes.post("/login", loginValidator, async (c) => {
   }
 
   if (!user.password && user.auth_provider != "default") {
-    return c.json({ message: `Login with ${user.auth_provider}` }, 400);
+    return c.json(
+      { message: `You account is linked with ${user.auth_provider}` },
+      400
+    );
   }
 
   const isValid = await comaprePassword(password, user.password!);
