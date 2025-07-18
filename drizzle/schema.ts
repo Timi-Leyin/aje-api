@@ -213,31 +213,52 @@ export const transaction = mysqlTable("transaction", {
 	unique("users_id_unique").on(table.id),
 ]);
 
-export const users = mysqlTable("users", {
-	id: varchar({ length: 100 }).notNull(),
-	email: varchar({ length: 255 }).notNull(),
-	firstName: varchar("first_name", { length: 50 }).notNull(),
-	lastName: varchar("last_name", { length: 50 }).notNull(),
-	phone: varchar({ length: 15 }).notNull(),
-	verified: tinyint().default(0),
-	verificationStatus: mysqlEnum("verification_status", ['pending','verified','rejected']),
-	password: text(),
-	authProvider: mysqlEnum("auth_provider", ['google','default']).default('default'),
-	userTypes: mysqlEnum("user_types", ['buyer','agent','vendor','artisan','admin']).default('buyer'),
-	bio: text(),
-	services: text(),
-	address: text(),
-	city: varchar({ length: 30 }),
-	available: tinyint(),
-	subscriptionId: text("subscription_id"),
-	lastLogin: timestamp("last_login", { mode: 'string' }).default(sql`(now())`),
-	fcmToken: text("fcm_token"),
-	deletedAt: timestamp("deleted_at", { mode: 'string' }),
-	createdAt: timestamp("created_at", { mode: 'string' }).default(sql`(now())`).notNull(),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).default(sql`(now())`).notNull(),
-},
-(table) => [
-	primaryKey({ columns: [table.id], name: "users_id"}),
-	unique("users_id_unique").on(table.id),
-	unique("users_email_unique").on(table.email),
-]);
+export const users = mysqlTable(
+  "users",
+  {
+    id: varchar({ length: 100 }).notNull(),
+    email: varchar({ length: 255 }).notNull(),
+    firstName: varchar("first_name", { length: 50 }).notNull(),
+    lastName: varchar("last_name", { length: 50 }).notNull(),
+    phone: varchar({ length: 15 }),
+    verified: tinyint().default(0),
+    verificationStatus: mysqlEnum("verification_status", [
+      "pending",
+      "verified",
+      "rejected",
+    ]),
+    password: text(),
+    authProvider: mysqlEnum("auth_provider", ["google", "default"]).default(
+      "default"
+    ),
+    userTypes: mysqlEnum("user_types", [
+      "buyer",
+      "agent",
+      "vendor",
+      "artisan",
+      "admin",
+    ]).default("buyer"),
+    bio: text(),
+    services: text(),
+    address: text(),
+    city: varchar({ length: 30 }),
+    available: tinyint(),
+    subscriptionId: text("subscription_id"),
+    lastLogin: timestamp("last_login", { mode: "string" }).default(
+      sql`(now())`
+    ),
+    fcmToken: text("fcm_token"),
+    deletedAt: timestamp("deleted_at", { mode: "string" }),
+    createdAt: timestamp("created_at", { mode: "string" })
+      .default(sql`(now())`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string" })
+      .default(sql`(now())`)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.id], name: "users_id" }),
+    unique("users_id_unique").on(table.id),
+    unique("users_email_unique").on(table.email),
+  ]
+);

@@ -7,7 +7,7 @@ export const signUpValidator = zValidator(
     .object({
       firstName: z.string(),
       lastName: z.string(),
-      phone: z.string(),
+      phone: z.string().optional(),
       email: z.string(),
       userType: z.enum(["buyer", "agent", "vendor", "artisan"]),
       auth_provider: z.enum(["google", "apple"]).optional(),
@@ -24,6 +24,19 @@ export const signUpValidator = zValidator(
       {
         message: "Password is required unless signing up with Google or Apple",
         path: ["password"],
+      }
+    )
+    .refine(
+      (data) => {
+        // Phone is required for all user types except buyer
+        if (data.userType !== "buyer") {
+          return !!data.phone;
+        }
+        return true; // Phone is optional for buyers
+      },
+      {
+        message: "Phone number is required for agents, vendors, and artisans",
+        path: ["phone"],
       }
     )
 );
