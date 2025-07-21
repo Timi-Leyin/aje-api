@@ -28,14 +28,18 @@ export const signUpValidator = zValidator(
     )
     .refine(
       (data) => {
-        // Phone is required for all user types except buyer
+        // Phone is optional for Google/Apple auth providers
+        if (["google", "apple"].includes(data.auth_provider || "")) {
+          return true;
+        }
+        // Phone is required for all user types except buyer when not using OAuth
         if (data.userType !== "buyer") {
           return !!data.phone;
         }
         return true; // Phone is optional for buyers
       },
       {
-        message: "Phone number is required for agents, vendors, and artisans",
+        message: "Phone number is required for agents, vendors, and artisans unless signing up with Google or Apple",
         path: ["phone"],
       }
     )
