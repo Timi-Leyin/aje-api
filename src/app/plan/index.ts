@@ -5,8 +5,6 @@ import { db } from "../../db";
 import { and, eq } from "drizzle-orm";
 import { subscription, transaction, users } from "../../db/schema";
 import { nanoid } from "nanoid";
-import { sendNotification } from "../../helpers/notification";
-import { debugSubscription } from "../../tests/subscription-debug";
 import { checkAndUpdateExpiredSubscriptions, getSubscriptionStatusSummary } from "../../helpers/subscription";
 
 const plansRoutes = new Hono<{ Variables: Variables }>();
