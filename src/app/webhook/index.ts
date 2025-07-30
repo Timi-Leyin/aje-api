@@ -1,6 +1,11 @@
 import { Hono } from "hono";
 import { Variables } from "../..";
-import { notification, subscription, transaction, users } from "../../db/schema";
+import {
+  notification,
+  subscription,
+  transaction,
+  users,
+} from "../../db/schema";
 import { eq, sql } from "drizzle-orm";
 import { db } from "../../db";
 import { MAX_LIMIT_DATA } from "../../constants";
@@ -91,9 +96,8 @@ webhooksRoutes.use("/webhook", async (c) => {
 // Helper functions to handle different webhook events
 async function handleChargeSuccess(eventData: any) {
   console.log(`[WEBHOOK] Processing charge.success event:`, eventData);
-  
+
   const metadata = eventData.metadata as { transactionId: string };
-  
 
   if (!metadata?.transactionId) {
     console.error("[WEBHOOK] Missing transactionId in metadata");
@@ -148,11 +152,11 @@ async function handleChargeSuccess(eventData: any) {
     console.log(`[WEBHOOK] Creating subscription for plan: ${trx.plan_code}`);
 
     const { plan_code } = await paystack.getPlan(trx.plan_code);
-    
+
     // Create subscription with Paystack
     const subscribeResult = await paystack.createSubscription({
       customer: trx.user.email,
-      plan: plan_code,
+      plan: trx.plan_code,
     });
 
     console.log(`[WEBHOOK] Paystack subscription created:`, subscribeResult);
@@ -171,8 +175,10 @@ async function handleChargeSuccess(eventData: any) {
 
     // Update subscription details
     if (trx.subscription_id) {
-      console.log(`[WEBHOOK] Updating subscription ${trx.subscription_id} to active`);
-      
+      console.log(
+        `[WEBHOOK] Updating subscription ${trx.subscription_id} to active`
+      );
+
       await db
         .update(subscription)
         .set({
@@ -186,17 +192,23 @@ async function handleChargeSuccess(eventData: any) {
         })
         .where(eq(subscription.id, trx.subscription_id));
 
-      console.log(`[WEBHOOK] Subscription ${trx.subscription_id} activated successfully`);
+      console.log(
+        `[WEBHOOK] Subscription ${trx.subscription_id} activated successfully`
+      );
     }
 
     // Send success notification
     if (trx.user_id) {
-      console.log(`[WEBHOOK] Sending success notification to user ${trx.user_id}`);
+      console.log(
+        `[WEBHOOK] Sending success notification to user ${trx.user_id}`
+      );
       await sendNotification(trx.user_id, {
         title: "Subscription Activated",
         type: "subscription",
         message: "Your subscription has been successfully activated!",
-      }).catch((error) => console.log("[WEBHOOK] Failed to send notification:", error));
+      }).catch((error) =>
+        console.log("[WEBHOOK] Failed to send notification:", error)
+      );
     }
   } catch (error) {
     console.error("[WEBHOOK] Failed to create subscription:", error);
@@ -231,7 +243,9 @@ async function handleInvoiceCreate(eventData: any) {
     await sendNotification(sub.user_id, {
       title: "Subscription Renewal",
       type: "subscription",
-      message: `Your subscription renewal invoice of ₦${eventData.amount / 100} has been generated.`,
+      message: `Your subscription renewal invoice of ₦${
+        eventData.amount / 100
+      } has been generated.`,
     }).catch((error) => console.log("Failed to send notification"));
   }
 }
@@ -264,7 +278,8 @@ async function handlePaymentFailed(eventData: any) {
     await sendNotification(sub.user_id, {
       title: "Payment Failed",
       type: "subscription",
-      message: "Your subscription payment failed. Please update your payment method to continue your subscription.",
+      message:
+        "Your subscription payment failed. Please update your payment method to continue your subscription.",
     }).catch((error) => console.log("Failed to send notification"));
   }
 }
@@ -274,7 +289,7 @@ async function handleSubscriptionCreate(eventData: any) {
   if (!subscriptionCode) return;
 
   console.log("Subscription created:", subscriptionCode);
-  
+
   // Update subscription with Paystack subscription code
   await db
     .update(subscription)
@@ -313,7 +328,8 @@ async function handleSubscriptionNotRenewed(eventData: any) {
     await sendNotification(sub.user_id, {
       title: "Subscription Cancelled",
       type: "subscription",
-      message: "Your subscription has been cancelled. You can reactivate it anytime from your account settings.",
+      message:
+        "Your subscription has been cancelled. You can reactivate it anytime from your account settings.",
     }).catch((error) => console.log("Failed to send notification"));
   }
 }
@@ -345,7 +361,8 @@ async function handleSubscriptionDisable(eventData: any) {
     await sendNotification(sub.user_id, {
       title: "Subscription Disabled",
       type: "subscription",
-      message: "Your subscription has been temporarily disabled. Please contact support for assistance.",
+      message:
+        "Your subscription has been temporarily disabled. Please contact support for assistance.",
     }).catch((error) => console.log("Failed to send notification"));
   }
 }
@@ -410,7 +427,8 @@ async function handleSubscriptionExpire(eventData: any) {
     await sendNotification(sub.user_id, {
       title: "Subscription Expired",
       type: "subscription",
-      message: "Your subscription has expired. Please renew your subscription to continue your service.",
+      message:
+        "Your subscription has expired. Please renew your subscription to continue your service.",
     }).catch((error) => console.log("Failed to send notification"));
   }
 }
