@@ -354,7 +354,7 @@ plansRoutes.get("/", async (c) => {
     const filteredPlans = plans
       .filter((plan) => {
         // Exclude plans with name 'test'
-        // if (plan?.name?.toLowerCase().includes("test")) return false;
+        if (plan?.name?.toLowerCase().includes("test")) return false;
         return isPlanSuitableForUserType(plan.name, user_type as UserType);
       })
       .map((plan) => {
@@ -464,7 +464,6 @@ plansRoutes.post("/subscribe", async (c) => {
     console.log(
       `[SUBSCRIPTION] Disabled ${disabledCount} previous subscriptions for user ${userId}`
     );
-
 
     // Check if user already has an active subscription to the same plan (should not happen, but for safety)
     const activeSub = await db.query.subscription.findFirst({
