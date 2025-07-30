@@ -5,7 +5,10 @@ import { db } from "../../db";
 import { and, eq } from "drizzle-orm";
 import { subscription, transaction, users } from "../../db/schema";
 import { nanoid } from "nanoid";
-import { checkAndUpdateExpiredSubscriptions, getSubscriptionStatusSummary } from "../../helpers/subscription";
+import {
+  checkAndUpdateExpiredSubscriptions,
+  getSubscriptionStatusSummary,
+} from "../../helpers/subscription";
 
 const plansRoutes = new Hono<{ Variables: Variables }>();
 
@@ -21,7 +24,6 @@ type PlanDetails = {
   highlights: string[];
 };
 
-// Subscription plan features and details
 const SUBSCRIPTION_PLANS: Record<string, Record<string, PlanDetails>> = {
   artisan: {
     "illumia starter": {
@@ -207,29 +209,39 @@ async function getUserSubscriptions(userId: string) {
 
 // Helper function to disable all previous subscriptions for a user
 async function disableAllPreviousSubscriptions(userId: string, email: string) {
-  console.log(`[DISABLE SUBSCRIPTIONS] Disabling all previous subscriptions for user ${userId}`);
-  
+  console.log(
+    `[DISABLE SUBSCRIPTIONS] Disabling all previous subscriptions for user ${userId}`
+  );
+
   // Get all existing subscriptions for the user
   const existingSubscriptions = await db.query.subscription.findMany({
     where: eq(subscription.user_id, userId),
   });
 
   if (existingSubscriptions.length === 0) {
-    console.log(`[DISABLE SUBSCRIPTIONS] No existing subscriptions found for user ${userId}`);
+    console.log(
+      `[DISABLE SUBSCRIPTIONS] No existing subscriptions found for user ${userId}`
+    );
     return { disabledCount: 0, errors: [] };
   }
 
-  console.log(`[DISABLE SUBSCRIPTIONS] Found ${existingSubscriptions.length} existing subscriptions for user ${userId}`);
-  
+  console.log(
+    `[DISABLE SUBSCRIPTIONS] Found ${existingSubscriptions.length} existing subscriptions for user ${userId}`
+  );
+
   const errors: string[] = [];
   let disabledCount = 0;
 
   for (const existingSub of existingSubscriptions) {
-    console.log(`[DISABLE SUBSCRIPTIONS] Processing subscription ${existingSub.id} (code: ${existingSub.code})`);
-    
+    console.log(
+      `[DISABLE SUBSCRIPTIONS] Processing subscription ${existingSub.id} (code: ${existingSub.code})`
+    );
+
     // Skip if already cancelled
     if (existingSub.cancelled) {
-      console.log(`[DISABLE SUBSCRIPTIONS] Subscription ${existingSub.id} already cancelled, skipping`);
+      console.log(
+        `[DISABLE SUBSCRIPTIONS] Subscription ${existingSub.id} already cancelled, skipping`
+      );
       continue;
     }
 
@@ -237,29 +249,45 @@ async function disableAllPreviousSubscriptions(userId: string, email: string) {
     if (existingSub.code) {
       try {
         const { customer_code } = await paystack.createCustomer({ email });
-        
+
         try {
           await paystack.cancelSubscription({
             code: existingSub.code,
             token: existingSub.email_token || customer_code,
           });
-          console.log(`[DISABLE SUBSCRIPTIONS] Successfully cancelled subscription ${existingSub.code} with Paystack`);
+          console.log(
+            `[DISABLE SUBSCRIPTIONS] Successfully cancelled subscription ${existingSub.code} with Paystack`
+          );
         } catch (err: any) {
-          console.log(`[DISABLE SUBSCRIPTIONS] Error cancelling subscription ${existingSub.code}:`, err?.response?.data || err);
-          
+          console.log(
+            `[DISABLE SUBSCRIPTIONS] Error cancelling subscription ${existingSub.code}:`,
+            err?.response?.data || err
+          );
+
           // Check if the error is because subscription is already inactive
           if (
             err?.response?.data?.code === "not_found" ||
             err?.response?.data?.message?.includes("already inactive")
           ) {
-            console.log(`[DISABLE SUBSCRIPTIONS] Subscription ${existingSub.code} already inactive on Paystack`);
+            console.log(
+              `[DISABLE SUBSCRIPTIONS] Subscription ${existingSub.code} already inactive on Paystack`
+            );
           } else {
-            errors.push(`Failed to cancel Paystack subscription ${existingSub.code}: ${err?.response?.data?.message || err.message}`);
+            errors.push(
+              `Failed to cancel Paystack subscription ${existingSub.code}: ${
+                err?.response?.data?.message || err.message
+              }`
+            );
           }
         }
       } catch (error) {
-        console.log(`[DISABLE SUBSCRIPTIONS] Error in cancellation process for subscription ${existingSub.code}:`, error);
-        errors.push(`Error creating customer for subscription ${existingSub.code}: ${error}`);
+        console.log(
+          `[DISABLE SUBSCRIPTIONS] Error in cancellation process for subscription ${existingSub.code}:`,
+          error
+        );
+        errors.push(
+          `Error creating customer for subscription ${existingSub.code}: ${error}`
+        );
       }
     }
 
@@ -274,11 +302,18 @@ async function disableAllPreviousSubscriptions(userId: string, email: string) {
         })
         .where(eq(subscription.id, existingSub.id));
 
-      console.log(`[DISABLE SUBSCRIPTIONS] Marked subscription ${existingSub.id} as cancelled locally`);
+      console.log(
+        `[DISABLE SUBSCRIPTIONS] Marked subscription ${existingSub.id} as cancelled locally`
+      );
       disabledCount++;
     } catch (error) {
-      console.log(`[DISABLE SUBSCRIPTIONS] Error updating local subscription ${existingSub.id}:`, error);
-      errors.push(`Error updating local subscription ${existingSub.id}: ${error}`);
+      console.log(
+        `[DISABLE SUBSCRIPTIONS] Error updating local subscription ${existingSub.id}:`,
+        error
+      );
+      errors.push(
+        `Error updating local subscription ${existingSub.id}: ${error}`
+      );
     }
   }
 
@@ -291,14 +326,21 @@ async function disableAllPreviousSubscriptions(userId: string, email: string) {
       })
       .where(eq(users.id, userId));
 
-    console.log(`[DISABLE SUBSCRIPTIONS] Cleared subscription reference for user ${userId}`);
+    console.log(
+      `[DISABLE SUBSCRIPTIONS] Cleared subscription reference for user ${userId}`
+    );
   } catch (error) {
-    console.log(`[DISABLE SUBSCRIPTIONS] Error clearing user subscription reference:`, error);
+    console.log(
+      `[DISABLE SUBSCRIPTIONS] Error clearing user subscription reference:`,
+      error
+    );
     errors.push(`Error clearing user subscription reference: ${error}`);
   }
 
-  console.log(`[DISABLE SUBSCRIPTIONS] Completed disabling subscriptions for user ${userId}. Disabled: ${disabledCount}, Errors: ${errors.length}`);
-  
+  console.log(
+    `[DISABLE SUBSCRIPTIONS] Completed disabling subscriptions for user ${userId}. Disabled: ${disabledCount}, Errors: ${errors.length}`
+  );
+
   return { disabledCount, errors };
 }
 
@@ -308,11 +350,11 @@ plansRoutes.get("/", async (c) => {
     const plans = await paystack.listPlans();
 
     // await debugSubscription(user_id);
-    
+
     const filteredPlans = plans
       .filter((plan) => {
         // Exclude plans with name 'test'
-        if (plan?.name?.toLowerCase().includes("test")) return false;
+        // if (plan?.name?.toLowerCase().includes("test")) return false;
         return isPlanSuitableForUserType(plan.name, user_type as UserType);
       })
       .map((plan) => {
@@ -389,38 +431,6 @@ plansRoutes.get("/all", async (c) => {
   }
 });
 
-plansRoutes.get("/available/:userType", async (c) => {
-  try {
-    const userType = c.req.param("userType") as UserType;
-
-    if (!USER_TYPES.includes(userType)) {
-      return c.json({ message: "Invalid user type" }, 400);
-    }
-
-    const userPlans =
-      SUBSCRIPTION_PLANS[userType as keyof typeof SUBSCRIPTION_PLANS];
-    if (!userPlans) {
-      return c.json({ message: "No plans available for this user type" }, 404);
-    }
-
-    const availablePlans = Object.entries(userPlans).map(([key, plan]) => ({
-      key,
-      name: plan.name,
-      period: plan.period,
-      description: plan.description,
-      features: plan.features,
-      highlights: plan.highlights,
-    }));
-
-    return c.json({
-      message: `Available plans for ${userType}`,
-      data: availablePlans,
-    });
-  } catch (error) {
-    return c.json({ message: "Internal Server Error" }, 500);
-  }
-});
-
 plansRoutes.post("/subscribe", async (c) => {
   try {
     const {
@@ -441,11 +451,20 @@ plansRoutes.post("/subscribe", async (c) => {
     );
 
     // Always cancel all previous subscriptions before creating a new one
-    const { disabledCount, errors } = await disableAllPreviousSubscriptions(userId, email);
+    const { disabledCount, errors } = await disableAllPreviousSubscriptions(
+      userId,
+      email
+    );
     if (errors.length > 0) {
-      console.log(`[SUBSCRIPTION] Warnings during subscription cancellation:`, errors);
+      console.log(
+        `[SUBSCRIPTION] Warnings during subscription cancellation:`,
+        errors
+      );
     }
-    console.log(`[SUBSCRIPTION] Disabled ${disabledCount} previous subscriptions for user ${userId}`);
+    console.log(
+      `[SUBSCRIPTION] Disabled ${disabledCount} previous subscriptions for user ${userId}`
+    );
+
 
     // Check if user already has an active subscription to the same plan (should not happen, but for safety)
     const activeSub = await db.query.subscription.findFirst({
@@ -455,6 +474,7 @@ plansRoutes.post("/subscribe", async (c) => {
         eq(subscription.active, true)
       ),
     });
+
     if (activeSub) {
       return c.json({ message: "You already Subscribed to this plan" }, 400);
     }
@@ -474,7 +494,7 @@ plansRoutes.post("/subscribe", async (c) => {
     let plan;
     try {
       plan = await paystack.getPlan(planId);
-      console.log(`[SUBSCRIPTION] Retrieved plan details for ${planId}:`, plan);
+      console.log(`[SUBSCRIPTION] Retrieved plan details for ${planId}:`);
 
       if (!plan || !plan.amount) {
         console.log(`[SUBSCRIPTION] Invalid plan selected: ${planId}`);
@@ -544,7 +564,7 @@ plansRoutes.post("/subscribe", async (c) => {
     const paymentResponse = await paystack.initTransaction({
       amount: plan.amount,
       email: customer.email,
-      callback_url: `${process.env.FRONTEND_URL}/payment/success?ref=subscription&refId=${subscriptionId}`,
+      callback_url: `${process.env.FRONTEND_URL}/payment/success.html?ref=subscription&refId=${subscriptionId}`,
       metadata: JSON.stringify({
         transactionId,
         userId,
@@ -699,13 +719,21 @@ plansRoutes.post("/upgrade", async (c) => {
     }
 
     // Disable all previous subscriptions before creating new one
-    const { disabledCount, errors } = await disableAllPreviousSubscriptions(userId, email);
-    
+    const { disabledCount, errors } = await disableAllPreviousSubscriptions(
+      userId,
+      email
+    );
+
     if (errors.length > 0) {
-      console.log(`[UPGRADE] Warnings during subscription cancellation:`, errors);
+      console.log(
+        `[UPGRADE] Warnings during subscription cancellation:`,
+        errors
+      );
     }
 
-    console.log(`[UPGRADE] Disabled ${disabledCount} previous subscriptions for user ${userId}`);
+    console.log(
+      `[UPGRADE] Disabled ${disabledCount} previous subscriptions for user ${userId}`
+    );
 
     // Create new subscription
     const transactionId = nanoid();
@@ -748,7 +776,7 @@ plansRoutes.post("/upgrade", async (c) => {
     const paymentResponse = await paystack.initTransaction({
       amount: newPlan.amount,
       email: email,
-      callback_url: `${process.env.FRONTEND_URL}/payment/success`,
+      callback_url: `${process.env.FRONTEND_URL}/payment/success.html`,
       metadata: JSON.stringify({
         transactionId,
         userId,
@@ -926,14 +954,22 @@ plansRoutes.post("/reactivate", async (c) => {
     if (!sub.user_id) {
       return c.json({ message: "Invalid subscription: missing user ID" }, 400);
     }
-    
-    const { disabledCount, errors } = await disableAllPreviousSubscriptions(sub.user_id, email);
-    
+
+    const { disabledCount, errors } = await disableAllPreviousSubscriptions(
+      sub.user_id,
+      email
+    );
+
     if (errors.length > 0) {
-      console.log(`[REACTIVATE] Warnings during subscription cancellation:`, errors);
+      console.log(
+        `[REACTIVATE] Warnings during subscription cancellation:`,
+        errors
+      );
     }
 
-    console.log(`[REACTIVATE] Disabled ${disabledCount} previous subscriptions for user ${sub.user_id}`);
+    console.log(
+      `[REACTIVATE] Disabled ${disabledCount} previous subscriptions for user ${sub.user_id}`
+    );
 
     // Get current plan details
     let plan;
@@ -1343,13 +1379,21 @@ plansRoutes.post("/activate/:subscriptionId", async (c) => {
 
     // Disable all previous subscriptions before manual activation
     if (sub.user?.email && sub.user_id) {
-      const { disabledCount, errors } = await disableAllPreviousSubscriptions(sub.user_id, sub.user.email);
-      
+      const { disabledCount, errors } = await disableAllPreviousSubscriptions(
+        sub.user_id,
+        sub.user.email
+      );
+
       if (errors.length > 0) {
-        console.log(`[MANUAL ACTIVATION] Warnings during subscription cancellation:`, errors);
+        console.log(
+          `[MANUAL ACTIVATION] Warnings during subscription cancellation:`,
+          errors
+        );
       }
 
-      console.log(`[MANUAL ACTIVATION] Disabled ${disabledCount} previous subscriptions for user ${sub.user_id}`);
+      console.log(
+        `[MANUAL ACTIVATION] Disabled ${disabledCount} previous subscriptions for user ${sub.user_id}`
+      );
     }
 
     // Try to create subscription with Paystack

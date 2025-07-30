@@ -94,9 +94,6 @@ async function handleChargeSuccess(eventData: any) {
   
   const metadata = eventData.metadata as { transactionId: string };
   
-  console.log({
-    eventData
-  })
 
   if (!metadata?.transactionId) {
     console.error("[WEBHOOK] Missing transactionId in metadata");
