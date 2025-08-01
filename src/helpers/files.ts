@@ -24,6 +24,7 @@ export const uploadFiles = async (file: File | File[], relations?: Rl) => {
 
   if (CLOUD_UPLOAD_ASSETS) {
     for (const file of files) {
+      if (!file?.name) continue;
       console.log("> uploading", file.name);
       const buffer = await file.arrayBuffer();
       const stream = Readable.from(Buffer.from(buffer));
