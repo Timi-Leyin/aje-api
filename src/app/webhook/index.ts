@@ -6,12 +6,14 @@ import {
   transaction,
   users,
 } from "../../db/schema";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, inArray, not, sql } from "drizzle-orm";
 import { db } from "../../db";
 import { MAX_LIMIT_DATA } from "../../constants";
 import * as crypto from "crypto";
 import { paystack } from "../../config/paystack";
 import { sendNotification } from "../../helpers/notification";
+import { nanoid } from "nanoid";
+import { cancelAllPreviousSubscriptions } from "../../v2/plan";
 
 const webhooksRoutes = new Hono<{ Variables: Variables }>();
 
@@ -89,7 +91,8 @@ webhooksRoutes.use("/webhook", async (c) => {
     return c.json({ success: true });
   } catch (error) {
     console.error("Webhook processing error:", error);
-    return c.json({ message: "Internal server error" }, 500);
+    // Re-throw the error so Paystack will retry the webhook
+    throw error;
   }
 });
 
@@ -97,18 +100,26 @@ webhooksRoutes.use("/webhook", async (c) => {
 async function handleChargeSuccess(eventData: any) {
   console.log(`[WEBHOOK] Processing charge.success event:`, eventData);
 
-  const metadata = eventData.metadata as { transactionId: string };
+  const metadata = eventData.metadata as {
+    transactionId: string;
+    planCode: string;
+  };
 
-  if (!metadata?.transactionId) {
-    console.error("[WEBHOOK] Missing transactionId in metadata");
-    return;
+  const trxId = eventData.reference;
+  console.log(`[WEBHOOK] Looking for transaction: ${trxId}`);
+
+  if (
+    eventData.status !== "success" &&
+    eventData?.gateway_response?.toLowerCase() == "Successful"
+  ) {
+    const errorMsg = `[WEBHOOK] Charge status is not success: ${eventData.status}`;
+    console.warn(errorMsg);
+    throw new Error(errorMsg);
   }
 
-  console.log(`[WEBHOOK] Looking for transaction: ${metadata.transactionId}`);
-
   // Find the transaction
-  const trx = await db.query.transaction.findFirst({
-    where: eq(transaction.id, metadata.transactionId),
+  let trx = await db.query.transaction.findFirst({
+    where: eq(transaction.id, trxId),
     with: {
       subscription: true,
       user: true,
@@ -116,8 +127,62 @@ async function handleChargeSuccess(eventData: any) {
   });
 
   if (!trx) {
-    console.error(`[WEBHOOK] Transaction not found: ${metadata.transactionId}`);
-    return;
+    console.error(`[WEBHOOK] Transaction not found: ${trxId}`);
+    await db.transaction(async (tx) => {
+      const user = await db.query.users.findFirst({
+        where: eq(users.email, eventData.customer.email),
+      });
+
+      if (!user)
+        throw new Error(
+          `[WEBHOOK] User not found: ${eventData.customer.email}`
+        );
+
+      const subId = nanoid();
+      const sub = await db.insert(subscription).values({
+        id: subId,
+        user_id: user.id,
+        plan_code: metadata.planCode,
+        transaction_id: trxId,
+        created_at: new Date(),
+        updated_at: new Date(),
+      });
+
+      await db.insert(transaction).values({
+        id: trxId,
+        plan_code: metadata.planCode,
+        user_id: user.id,
+        status: "pending",
+        subscription_id: subId,
+        amount: eventData.amount,
+        created_at: new Date(),
+        updated_at: new Date(),
+      });
+
+      trx = await db.query.transaction.findFirst({
+        where: eq(transaction.id, trxId),
+        with: {
+          subscription: true,
+          user: true,
+        },
+      });
+    });
+  }
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.email, eventData.customer.email),
+  });
+
+  if (!user) {
+    const errorMsg = `[WEBHOOK] User not found: ${eventData.customer.email}`;
+ 
+    throw new Error(errorMsg);
+  }
+
+  if (!trx) {
+    const errorMsg = `[WEBHOOK] Transaction not found`;
+ 
+    throw new Error(errorMsg);
   }
 
   console.log(`[WEBHOOK] Found transaction:`, {
@@ -145,15 +210,20 @@ async function handleChargeSuccess(eventData: any) {
   // Create subscription with Paystack
   try {
     if (!trx.user?.email || !trx.plan_code) {
-      console.error("[WEBHOOK] Missing user email or plan code");
-      return;
+      const errorMsg = "[WEBHOOK] Missing user email or plan code";
+   
+      throw new Error(errorMsg);
     }
 
     console.log(`[WEBHOOK] Creating subscription for plan: ${trx.plan_code}`);
 
     const { plan_code } = await paystack.getPlan(trx.plan_code);
 
+    // remove previous subscriptions from paystack
+
     // Create subscription with Paystack
+    // trx.user_id &&
+      // (await cancelAllPreviousSubscriptions(trx.user_id, trx.user.email));
     const subscribeResult = await paystack.createSubscription({
       customer: trx.user.email,
       plan: trx.plan_code,
@@ -211,13 +281,18 @@ async function handleChargeSuccess(eventData: any) {
       );
     }
   } catch (error) {
-    console.error("[WEBHOOK] Failed to create subscription:", error);
+    console.error("[WEBHOOK] Failed to create subscription:");
+    throw error; // Re-throw the error so webhook can be retried
   }
 }
 
 async function handleInvoiceCreate(eventData: any) {
   const subscriptionCode = eventData.subscription?.subscription_code;
-  if (!subscriptionCode) return;
+  if (!subscriptionCode) {
+    const errorMsg = "Missing subscription code in webhook data";
+    // console.error(errorMsg);
+    throw new Error(errorMsg);
+  }
 
   const sub = await db.query.subscription.findFirst({
     where: eq(subscription.code, subscriptionCode),
@@ -225,8 +300,9 @@ async function handleInvoiceCreate(eventData: any) {
   });
 
   if (!sub) {
-    console.error(`Subscription not found: ${subscriptionCode}`);
-    return;
+    const errorMsg = `Subscription not found: ${subscriptionCode}`;
+    // console.error(errorMsg);
+    throw new Error(errorMsg);
   }
 
   await db
@@ -252,7 +328,11 @@ async function handleInvoiceCreate(eventData: any) {
 
 async function handlePaymentFailed(eventData: any) {
   const subscriptionCode = eventData.subscription?.subscription_code;
-  if (!subscriptionCode) return;
+  if (!subscriptionCode) {
+    const errorMsg = "Missing subscription code in payment failed webhook data";
+    // console.error(errorMsg);
+    throw new Error(errorMsg);
+  }
 
   const sub = await db.query.subscription.findFirst({
     where: eq(subscription.code, subscriptionCode),
@@ -260,8 +340,9 @@ async function handlePaymentFailed(eventData: any) {
   });
 
   if (!sub) {
-    console.error(`Subscription not found: ${subscriptionCode}`);
-    return;
+    const errorMsg = `Subscription not found: ${subscriptionCode}`;
+    // console.error(errorMsg);
+    throw new Error(errorMsg);
   }
 
   await db
@@ -286,7 +367,12 @@ async function handlePaymentFailed(eventData: any) {
 
 async function handleSubscriptionCreate(eventData: any) {
   const subscriptionCode = eventData.subscription_code;
-  if (!subscriptionCode) return;
+  if (!subscriptionCode) {
+    const errorMsg =
+      "Missing subscription code in subscription create webhook data";
+    // console.error(errorMsg);
+    throw new Error(errorMsg);
+  }
 
   console.log("Subscription created:", subscriptionCode);
 
@@ -301,8 +387,13 @@ async function handleSubscriptionCreate(eventData: any) {
 }
 
 async function handleSubscriptionNotRenewed(eventData: any) {
-  const subscriptionCode = eventData.subscription?.subscription_code;
-  if (!subscriptionCode) return;
+  console.log(eventData);
+  const subscriptionCode = eventData?.subscription_code;
+  if (!subscriptionCode) {
+    const errorMsg = "Missing subscription code in not-renewed webhook data";
+    // console.error(errorMsg);
+    throw new Error(errorMsg);
+  }
 
   const sub = await db.query.subscription.findFirst({
     where: eq(subscription.code, subscriptionCode),
@@ -310,16 +401,16 @@ async function handleSubscriptionNotRenewed(eventData: any) {
   });
 
   if (!sub) {
-    console.error(`Subscription not found: ${subscriptionCode}`);
-    return;
+    const errorMsg = `Subscription not found: ${subscriptionCode}`;
+ 
+    throw new Error(errorMsg);
   }
 
   await db
     .update(subscription)
     .set({
-      active: false,
       cancelled: true,
-      status: "failed",
+      // status: "failed",
     })
     .where(eq(subscription.code, subscriptionCode));
 
@@ -336,7 +427,11 @@ async function handleSubscriptionNotRenewed(eventData: any) {
 
 async function handleSubscriptionDisable(eventData: any) {
   const subscriptionCode = eventData.subscription_code;
-  if (!subscriptionCode) return;
+  if (!subscriptionCode) {
+    const errorMsg = "Missing subscription code in disable webhook data";
+ 
+    throw new Error(errorMsg);
+  }
 
   const sub = await db.query.subscription.findFirst({
     where: eq(subscription.code, subscriptionCode),
@@ -344,15 +439,17 @@ async function handleSubscriptionDisable(eventData: any) {
   });
 
   if (!sub) {
-    console.error(`Subscription not found: ${subscriptionCode}`);
-    return;
+    const errorMsg = `Subscription not found: ${subscriptionCode}`;
+ 
+    throw new Error(errorMsg);
   }
 
   await db
     .update(subscription)
     .set({
-      active: false,
-      status: "failed",
+      // active: false,
+      expired:true,
+      // status: "failed",
     })
     .where(eq(subscription.code, subscriptionCode));
 
@@ -369,7 +466,11 @@ async function handleSubscriptionDisable(eventData: any) {
 
 async function handleSubscriptionEnable(eventData: any) {
   const subscriptionCode = eventData.subscription_code;
-  if (!subscriptionCode) return;
+  if (!subscriptionCode) {
+    const errorMsg = "Missing subscription code in enable webhook data";
+ 
+    throw new Error(errorMsg);
+  }
 
   const sub = await db.query.subscription.findFirst({
     where: eq(subscription.code, subscriptionCode),
@@ -377,8 +478,9 @@ async function handleSubscriptionEnable(eventData: any) {
   });
 
   if (!sub) {
-    console.error(`Subscription not found: ${subscriptionCode}`);
-    return;
+    const errorMsg = `Subscription not found: ${subscriptionCode}`;
+ 
+    throw new Error(errorMsg);
   }
 
   await db
@@ -401,7 +503,11 @@ async function handleSubscriptionEnable(eventData: any) {
 
 async function handleSubscriptionExpire(eventData: any) {
   const subscriptionCode = eventData.subscription?.subscription_code;
-  if (!subscriptionCode) return;
+  if (!subscriptionCode) {
+    const errorMsg = "Missing subscription code in expire webhook data";
+ 
+    throw new Error(errorMsg);
+  }
 
   const sub = await db.query.subscription.findFirst({
     where: eq(subscription.code, subscriptionCode),
@@ -409,8 +515,9 @@ async function handleSubscriptionExpire(eventData: any) {
   });
 
   if (!sub) {
-    console.error(`Subscription not found: ${subscriptionCode}`);
-    return;
+    const errorMsg = `Subscription not found: ${subscriptionCode}`;
+ 
+    throw new Error(errorMsg);
   }
 
   await db

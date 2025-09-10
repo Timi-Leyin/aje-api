@@ -13,8 +13,8 @@ interface createSubscriptionPayload {
   start_date?: string; // ISO Date String
 }
 
-interface getSubscriptionPayload{
-  code:string
+interface getSubscriptionPayload {
+  code: string;
 }
 
 interface createSubResponse {
@@ -61,9 +61,11 @@ interface createCustomerPayload {
 
 interface initTransactionParams {
   email: string;
+  plan?: string;
+  reference?: string;
   amount: number;
   metadata?: any;
-  callback_url?:string;
+  callback_url?: string;
 }
 
 interface initTransactionResponse {

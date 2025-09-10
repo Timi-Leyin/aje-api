@@ -6,9 +6,9 @@ import authRoutes from "./app/auth";
 import propertyRoutes from "./app/property";
 import profileRoutes from "./app/profile";
 import { jwt, JwtVariables } from "hono/jwt";
-import { eq, InferModel, sql } from "drizzle-orm";
+import { and, eq, inArray, InferModel, not, sql } from "drizzle-orm";
 import { db } from "./db";
-import { files, subscription, users } from "./db/schema";
+import { files, subscription, transaction, users } from "./db/schema";
 import artisanRoutes from "./app/artisan";
 import marketplaceRoutes from "./app/marketplace";
 import reviewsRoutes from "./app/review";
@@ -18,6 +18,7 @@ import notificationsRoutes from "./app/notification";
 import reportRoutes from "./app/report";
 import { adminRoutes } from "./app/admin";
 import { cors } from "hono/cors";
+import v2PlansRoutes from "./v2/plan";
 const app = new Hono();
 
 app.use(
@@ -28,8 +29,8 @@ app.use(
 app.use(logger());
 app.get("/", (c) => {
   return c.json({
-    ios: "v2.2.2(31)",
-    android: "v21.2.2(30)",
+    ios: "v2.2.4(34)",
+    android: "v2.2.4(34)",
   });
 });
 
@@ -78,6 +79,42 @@ app.route("/auth", authRoutes);
 app.route("/property", propertyRoutes);
 app.route("/paystack", webhooksRoutes);
 app.route("/admin", adminRoutes);
+
+app.get("/v2/plan/verify/:id", async (c) => {
+  const id = c.req.param("id");
+  const trx = await db.query.transaction.findFirst({
+    where: and(
+      eq(transaction.id, id)
+      // not(inArray(transaction.status, ["success", "failed"]))
+    ),
+  });
+
+  if (!trx || !trx?.user_id) {
+    return c.json({ message: "Transaction not found" }, 404);
+  }
+
+  await db
+    .delete(subscription)
+    .where(
+      and(not(eq(subscription.id, id)), eq(subscription.user_id, trx.user_id))
+    );
+
+  await db.transaction(async (tx) => {
+    await tx
+      .update(transaction)
+      .set({ status: "success" })
+      .where(eq(transaction.id, id));
+    if (!trx?.subscription_id) {
+      return;
+    }
+    await tx
+      .update(subscription)
+      .set({ active: true, cancelled: false, user_id: trx.user_id })
+      .where(eq(subscription.id, trx.subscription_id));
+  });
+  return c.redirect(`${process.env.FRONTEND_URL}/payment/success.html`);
+});
+
 // PROTECTED
 app.use(
   "/*",
@@ -85,7 +122,17 @@ app.use(
     secret: process.env.JWT_SECRET,
   }),
   async (c, next) => {
+    // console.log("PLAAAAAAAN",c.req.path)
+    // if (c.req.path.startsWith("/v2/plan/verify")) {
+    //   return next();
+    // }
+
     const { id } = c.get("jwtPayload");
+    if (!id) {
+      return c.json({ message: "Unauthorized" }, 401);
+    }
+
+    // Fetch user profile
     const profile = await db.query.users.findFirst({
       where: eq(users.id, id),
       with: {
@@ -100,13 +147,19 @@ app.use(
       return c.json({ message: "Unauthorized" }, 401);
     }
 
-    // const sub = await db.query.subscription.findMany({
-    //   where: eq(subscription.user_id, profile?.id),
-    // });
+    const sub = await db.query.subscription.findFirst({
+      where: and(
+        eq(subscription.user_id, profile?.id),
+        eq(subscription.active, true)
+      ),
+    });
 
-    // console.log(profile.subscription);
+    // console.log(subscription);
     const { password, ...rest } = profile as any;
-    c.set("jwtPayload", rest);
+    c.set("jwtPayload", {
+      ...rest,
+      subscription: sub,
+    });
     await next();
   }
 );
@@ -136,6 +189,9 @@ app.route("/review", reviewsRoutes);
 app.route("/plan", plansRoutes);
 app.route("/notification", notificationsRoutes);
 app.route("/report", reportRoutes);
+
+// v2
+app.route("/v2/plan", v2PlansRoutes);
 
 serve(
   {
