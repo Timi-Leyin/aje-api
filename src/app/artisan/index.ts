@@ -72,7 +72,7 @@ artisanRoutes.get("/", async (c) => {
         .then((res) => res[0].count),
     ]);
 
-    // Filter artisans by active subscription
+    // Filter artisans by active subscription (including free trials)
     const filteredArtisans = [];
     for (const artisan of artisans) {
       const sub = await getActiveSubscription(artisan.id);

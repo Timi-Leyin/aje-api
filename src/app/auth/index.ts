@@ -6,7 +6,7 @@ import {
 } from "./validators";
 import { db } from "../../db";
 import { eq } from "drizzle-orm";
-import { users } from "../../db/schema";
+import { users, subscription } from "../../db/schema";
 import {
   comaprePassword,
   generateJWT,
@@ -17,6 +17,7 @@ import { nanoid } from "nanoid";
 import { html } from "hono/html";
 import { sendEmail } from "../../helpers/email";
 import { sendNotification } from "../../helpers/notification";
+import { createArtisanFreeTrial } from "../../helpers/subscription";
 import { getConnInfo } from "@hono/node-server/conninfo";
 import { decode, sign } from "hono/jwt";
 import jwt from "jsonwebtoken";
@@ -61,6 +62,17 @@ authRoutes.post("/signup", signUpValidator, async (c) => {
     password: hashed,
     auth_provider: auth_provider || "default",
   });
+
+  // Create free trial subscription for artisans
+  if (userType === "artisan") {
+    try {
+      await createArtisanFreeTrial(id);
+      console.log(`Created free trial subscription for artisan ${id}`);
+    } catch (error) {
+      console.error("Error creating free trial subscription:", error);
+      // Don't fail the signup if subscription creation fails
+    } 
+  }
 
   const token = await generateJWT({
     id,

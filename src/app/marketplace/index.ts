@@ -125,6 +125,13 @@ marketplaceRoutes.get("/product", async (c) => {
         }
         continue;
       }
+      // if (ownerType === "artisan") {
+      //   const sub = await getActiveSubscription(prod.user.id);
+      //   if (sub && sub.active && !sub.expired && sub.status === "success") {
+      //     filteredProducts.push(prod);
+      //   }
+      //   continue;
+      // }
       // For other user types, skip
     }
 

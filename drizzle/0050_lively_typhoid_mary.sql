@@ -1,0 +1,1 @@
+ALTER TABLE `subscription` ADD `free_trial` boolean DEFAULT false;

@@ -336,6 +336,7 @@ export const subscription = mysqlTable("subscription", {
   active: boolean(),
   expired: boolean(),
   cancelled: boolean(),
+  free_trial: boolean().default(false),
   next_payment_at: datetime(),
   status: trxStatus.default("pending"),
   paid_at: datetime(),

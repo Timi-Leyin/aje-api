@@ -166,6 +166,28 @@ export async function getActiveSubscription(userId: string) {
   });
 }
 
+export async function createArtisanFreeTrial(userId: string) {
+  const { nanoid } = await import("nanoid");
+  
+  const subscriptionId = nanoid();
+  const freeTrialEndDate = new Date();
+  freeTrialEndDate.setDate(freeTrialEndDate.getDate() + 15); // 15 days free trial
+
+  return db.insert(subscription).values({
+    id: subscriptionId,
+    user_id: userId,
+    plan_name: "Free Trial",
+    plan_code: "artisan_free_trial",
+    active: true,
+    expired: false,
+    cancelled: false,
+    free_trial: true,
+    next_payment_at: freeTrialEndDate,
+    status: "success",
+    amount: 0,
+  });
+}
+
 /**
  * Get the user's plan name (case-insensitive, returns lowercased)
  */
