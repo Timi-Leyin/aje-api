@@ -182,7 +182,7 @@ v2PlansRoutes.get("/", async (c) => {
     const filteredPlans = plans
       .filter((plan) => {
         // Exclude plans with name 'test'
-        // if (plan?.name?.toLowerCase().includes("test")) return false;
+        if (plan?.name?.toLowerCase().includes("test")) return false;
         return isPlanSuitableForUserType(plan.name, user_type as UserType);
       })
       .map((plan) => {
