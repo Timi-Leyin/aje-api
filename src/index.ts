@@ -19,6 +19,7 @@ import reportRoutes from "./app/report";
 import { adminRoutes } from "./app/admin";
 import { cors } from "hono/cors";
 import v2PlansRoutes from "./v2/plan";
+import installmentRoutes from "./app/installment";
 const app = new Hono();
 
 app.use(
@@ -79,6 +80,7 @@ app.route("/auth", authRoutes);
 app.route("/property", propertyRoutes);
 app.route("/paystack", webhooksRoutes);
 app.route("/admin", adminRoutes);
+app.route("/installment", installmentRoutes);
 
 app.get("/v2/plan/verify/:id", async (c) => {
   const id = c.req.param("id");

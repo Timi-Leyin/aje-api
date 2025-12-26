@@ -8,6 +8,7 @@ import {
   int,
   boolean,
   datetime,
+  date,
 } from "drizzle-orm/mysql-core";
 import { identifier, timestamps } from "./helpers/column-helpers";
 import { relations } from "drizzle-orm";
@@ -192,6 +193,59 @@ export const advertisementRelations = relations(advertisement, ({ many }) => ({
   images: many(files),
 }));
 
+export const installmentApplication = mysqlTable("installment_application", {
+  ...identifier,
+  type: varchar({ length: 50 }).notNull(), // "property" | "marketplace"
+
+  // Personal Information
+  full_name: varchar({ length: 255 }).notNull(),
+  phone: varchar({ length: 20 }).notNull(),
+  email: varchar({ length: 255 }).notNull(),
+  date_of_birth: date("date_of_birth"),
+  residential_address: text("residential_address"),
+  state: varchar({ length: 100 }),
+
+  // KYC
+  bvn: varchar({ length: 20 }),
+  nin: varchar({ length: 20 }),
+  id_type: varchar({ length: 50 }),
+
+  // Employment
+  employment_verification_required: boolean().default(false),
+  employment_status: varchar({ length: 50 }),
+  employer_name: varchar({ length: 255 }),
+  job_title: varchar({ length: 100 }),
+  monthly_income: varchar({ length: 50 }),
+  employment_length: varchar({ length: 50 }),
+
+  // Property/Product Details
+  property_id: text("property_id").references(() => property.id),
+  marketplace_id: text("marketplace_id").references(() => product.id),
+
+  // Guarantor
+  guarantor_name: varchar({ length: 255 }),
+  guarantor_phone: varchar({ length: 20 }),
+  guarantor_relationship: varchar({ length: 50 }),
+  guarantor_employer: varchar({ length: 255 }),
+
+  ...timestamps,
+});
+
+export const installmentApplicationRelations = relations(
+  installmentApplication,
+  ({ one, many }) => ({
+    property: one(property, {
+      fields: [installmentApplication.property_id],
+      references: [property.id],
+    }),
+    marketplace: one(product, {
+      fields: [installmentApplication.marketplace_id],
+      references: [product.id],
+    }),
+    files: many(files),
+  })
+);
+
 export const files = mysqlTable("files", {
   ...identifier,
   src: text("src").notNull(),
@@ -204,6 +258,9 @@ export const files = mysqlTable("files", {
   nin_doc_id: text("nin_doc_id").references(() => docsVerification.id),
   cac_doc_id: text("cac_doc_id").references(() => docsVerification.id),
   advertisement_id: text("advertisement_id").references(() => advertisement.id),
+  installment_application_id: text("installment_application_id").references(
+    () => installmentApplication.id
+  ),
   ...timestamps,
 });
 
@@ -237,6 +294,10 @@ export const fileRelations = relations(files, ({ one }) => ({
   advertisement_id: one(advertisement, {
     fields: [files.advertisement_id],
     references: [advertisement.id],
+  }),
+  installment_application_id: one(installmentApplication, {
+    fields: [files.installment_application_id],
+    references: [installmentApplication.id],
   }),
 }));
 
