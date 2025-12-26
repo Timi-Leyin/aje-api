@@ -30,8 +30,8 @@ app.use(
 app.use(logger());
 app.get("/", (c) => {
   return c.json({
-    ios: "v2.2.4(34)",
-    android: "v2.2.4(34)",
+    ios: "v2.2.8(40)",
+    android: "v2.2.8(40)",
   });
 });
 
