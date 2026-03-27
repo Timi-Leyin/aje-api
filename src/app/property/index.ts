@@ -8,6 +8,7 @@ import { and, eq, gte, like, lte, or, sql } from "drizzle-orm";
 import { Variables } from "../..";
 import { PropertyFormData } from "./types";
 import { MAX_LIMIT_DATA } from "../../constants";
+import { buildSearchFilter } from "../../helpers/search";
 import { ImageGroupType } from "../marketplace";
 import { jwt } from "hono/jwt";
 
@@ -59,18 +60,14 @@ propertyRoutes.get("/", async (c) => {
     }
 
     if (search) {
-      const words = search.trim().split(/\s+/).filter(Boolean);
-      const fieldMatches = words.map((word) =>
-        or(
-          like(property.city, `%${word}%`),
-          like(property.title, `%${word}%`),
-          like(property.description, `%${word}%`),
-          like(property.amenities, `%${word}%`),
-          like(property.address, `%${word}%`)
-        )
-      );
-
-      filters.push(or(...fieldMatches));
+      const searchFilter = buildSearchFilter(search, [
+        property.city,
+        property.title,
+        property.description,
+        property.amenities,
+        property.address,
+      ]);
+      if (searchFilter) filters.push(searchFilter);
     }
 
     const whereClause = filters.length ? and(...filters) : undefined;

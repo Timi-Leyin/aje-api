@@ -35,6 +35,9 @@ interface ApplicationEmailData {
   employment_length?: string;
   property_id?: string;
   marketplace_id?: string;
+  is_external_property: boolean;
+  external_property_link?: string;
+  external_property_location?: string;
   guarantor_name: string;
   guarantor_phone: string;
   guarantor_relationship: string;
@@ -81,6 +84,9 @@ export const generateApplicationEmail = (data: ApplicationEmailData) => {
         .footer { background-color: #f1f1f1; padding: 15px; text-align: center; font-size: 12px; color: #777; }
         .item-image { max-width: 100%; height: auto; border-radius: 4px; margin-top: 10px; }
         .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+        .badge-internal { background-color: #e6f7f1; color: #007B5D; }
+        .badge-external { background-color: #fff3e0; color: #e65100; }
       </style>
     </head>
     <body>
@@ -157,6 +163,14 @@ export const generateApplicationEmail = (data: ApplicationEmailData) => {
 
           <div class="section">
             <div class="section-title">Product/Property Interest</div>
+            <div class="row"><span class="label">Source:</span> <span class="value"><span class="badge ${data.is_external_property ? "badge-external" : "badge-internal"}">${data.is_external_property ? "External Property" : "Illumia Property"}</span></span></div>
+            ${
+              data.is_external_property
+                ? `
+            <div class="row"><span class="label">Property Link:</span> <span class="value"><a href="${data.external_property_link}" target="_blank" rel="noopener">${data.external_property_link}</a></span></div>
+            ${data.external_property_location ? `<div class="row"><span class="label">Location:</span> <span class="value">${data.external_property_location}</span></div>` : ""}
+            `
+                : `
             ${
               data.property_id
                 ? `<div class="row"><span class="label">Property ID:</span> <span class="value">${data.property_id}</span></div>`
@@ -180,7 +194,10 @@ export const generateApplicationEmail = (data: ApplicationEmailData) => {
               ${itemDetails.owner.phone ? `<div class="row"><span class="label">Owner Phone:</span> <span class="value">${itemDetails.owner.phone}</span></div>` : ""}
             ` : ""}
             ${itemImagesHtml ? `<div class="gallery">${itemImagesHtml}</div>` : ""}
-            ` : ""
+            `
+                : ""
+            }
+            `
             }
           </div>
 

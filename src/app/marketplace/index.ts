@@ -6,8 +6,12 @@ import { db } from "../../db";
 import { files, product } from "../../db/schema";
 import { deleteFile, uploadFiles } from "../../helpers/files";
 import { MAX_LIMIT_DATA } from "../../constants";
-import { and, eq, gte, like, lte, or, sql } from "drizzle-orm";
+import { and, desc, eq, gte, like, lte, or, sql } from "drizzle-orm";
 import { getActiveSubscription } from "../../helpers/subscription";
+import {
+  buildProductSearchRelevanceScore,
+  buildSearchFilter,
+} from "../../helpers/search";
 
 const marketplaceRoutes = new Hono<{ Variables: Variables }>();
 
@@ -72,23 +76,34 @@ marketplaceRoutes.get("/product", async (c) => {
     if (maxPrice) filters.push(lte(product.price, parseFloat(maxPrice)));
     if (city) {
       const words = city.trim().split(/\s+/).filter(Boolean);
-      filters.push(like(product.city, `%${city}%`));
       const conditions = words.map((word) => like(product.city, `%${word}%`));
       filters.push(or(...conditions));
     }
+    const searchWords = search?.trim().split(/\s+/).filter(Boolean) ?? [];
     if (search) {
-      const words = search.trim().split(/\s+/).filter(Boolean);
-      const fieldMatches = words.map((word) =>
-        or(
-          like(product.city, `%${word}%`),
-          like(product.title, `%${word}%`),
-          like(product.description, `%${word}%`)
-        )
-      );
-      filters.push(or(...fieldMatches));
+      const searchFilter = buildSearchFilter(search, [
+        product.city,
+        product.title,
+        product.description,
+        product.address,
+      ]);
+      if (searchFilter) filters.push(searchFilter);
     }
 
     const whereClause = filters.length ? and(...filters) : undefined;
+
+    const relevanceScore =
+      searchWords.length > 0
+        ? buildProductSearchRelevanceScore(
+            {
+              title: product.title,
+              description: product.description,
+              city: product.city,
+              address: product.address,
+            },
+            searchWords
+          )
+        : undefined;
 
     // Fetch products with owner info
     const [products, total] = await Promise.all([
@@ -96,7 +111,10 @@ marketplaceRoutes.get("/product", async (c) => {
         where: whereClause,
         limit: limitNumber,
         offset: offset,
-        orderBy: sql`RAND()`,
+        orderBy:
+          relevanceScore !== undefined
+            ? [desc(relevanceScore), desc(product.created_at)]
+            : sql`RAND()`,
         with: {
           images: { limit: 2 },
           user: { columns: { id: true, user_type: true } },
@@ -139,10 +157,10 @@ marketplaceRoutes.get("/product", async (c) => {
       message: "Products retrieved",
       data: filteredProducts,
       meta: {
-        total: filteredProducts.length,
+        total: Number(total),
         page: pageNumber,
         limit: limitNumber,
-        totalPages: Math.ceil(filteredProducts.length / limitNumber),
+        totalPages: Math.ceil(Number(total) / limitNumber),
       },
     });
   } catch (error) {
@@ -242,29 +260,42 @@ marketplaceRoutes.get("/product/mine", async (c) => {
 
     const filters = [];
 
+    const searchWords = search?.trim().split(/\s+/).filter(Boolean) ?? [];
     if (search) {
-      const words = search.trim().split(/\s+/).filter(Boolean);
-      const fieldMatches = words.map((word) =>
-        or(
-          like(product.city, `%${word}%`),
-          like(product.title, `%${word}%`),
-          like(product.description, `%${word}%`),
-          like(product.address, `%${word}%`)
-        )
-      );
-
-      filters.push(or(...fieldMatches));
+      const searchFilter = buildSearchFilter(search, [
+        product.city,
+        product.title,
+        product.description,
+        product.address,
+      ]);
+      if (searchFilter) filters.push(searchFilter);
     }
 
     filters.push(eq(product.user_id, id));
     const whereClause = filters.length ? and(...filters) : undefined;
+
+    const relevanceScore =
+      searchWords.length > 0
+        ? buildProductSearchRelevanceScore(
+            {
+              title: product.title,
+              description: product.description,
+              city: product.city,
+              address: product.address,
+            },
+            searchWords
+          )
+        : undefined;
 
     const [products, total] = await Promise.all([
       db.query.product.findMany({
         where: whereClause,
         limit: limitNumber,
         offset: offset,
-        // orderBy: sql`RAND()`,
+        orderBy:
+          relevanceScore !== undefined
+            ? [desc(relevanceScore), desc(product.created_at)]
+            : desc(product.created_at),
         with: {
           images: {
             limit: 5,

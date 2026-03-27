@@ -9,10 +9,11 @@ interface SendEmailParams {
 
 export const sendEmail = async ({ to, subject, body }: SendEmailParams) => {
   await axios.post(
-    "https://api.useplunk.com/v1/send",
+    "https://next-api.useplunk.com/v1/send",
     {
       to,
       subject,
+      from: "noreply@illumiacityempire.com",
       body,
     },
     {

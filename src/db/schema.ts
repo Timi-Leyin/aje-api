@@ -222,6 +222,11 @@ export const installmentApplication = mysqlTable("installment_application", {
   property_id: text("property_id").references(() => property.id),
   marketplace_id: text("marketplace_id").references(() => product.id),
 
+  // External Property Details
+  is_external_property: boolean().default(false),
+  external_property_link: text("external_property_link"),
+  external_property_location: text("external_property_location"),
+
   // Guarantor
   guarantor_name: varchar({ length: 255 }),
   guarantor_phone: varchar({ length: 20 }),

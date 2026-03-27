@@ -12,7 +12,7 @@ const installmentRoutes = new Hono();
 
 installmentRoutes.post("/application", async (c) => {
   try {
-    const body = await c.req.parseBody();
+    const body = await c.req.parseBody({ all: true });
     const {
       type,
       full_name,
@@ -32,6 +32,9 @@ installmentRoutes.post("/application", async (c) => {
       employment_length,
       property_id,
       marketplace_id,
+      is_external_property,
+      external_property_link,
+      external_property_location,
       guarantor_name,
       guarantor_phone,
       guarantor_relationship,
@@ -39,13 +42,12 @@ installmentRoutes.post("/application", async (c) => {
     } = body;
 
     // Extract files
-    const id_upload = body["id_upload"] as File;
-    const payslip_upload = body["payslip_upload"] as File;
-    const bank_statement = body["bank_statement"] as File;
-    const guarantor_id_upload = body["guarantor_id_upload"] as File;
+    const id_upload = (Array.isArray(body["id_upload"]) ? body["id_upload"][0] : body["id_upload"]) as File | undefined;
+    const payslip_upload = (Array.isArray(body["payslip_upload"]) ? body["payslip_upload"][0] : body["payslip_upload"]) as File | undefined;
+    const bank_statement = (Array.isArray(body["bank_statement"]) ? body["bank_statement"][0] : body["bank_statement"]) as File | undefined;
+    const guarantor_id_upload = (Array.isArray(body["guarantor_id_upload"]) ? body["guarantor_id_upload"][0] : body["guarantor_id_upload"]) as File | undefined;
 
     const id = nanoid();
-
     await db.insert(installmentApplication).values({
       id,
       type: type as string,
@@ -67,8 +69,11 @@ installmentRoutes.post("/application", async (c) => {
       job_title: job_title as string,
       monthly_income: monthly_income as string,
       employment_length: employment_length as string,
-      property_id: property_id as string,
-      marketplace_id: marketplace_id as string,
+      property_id: (property_id as string) || undefined,
+      marketplace_id: (marketplace_id as string) || undefined,
+      is_external_property: is_external_property === "true",
+      external_property_link: (external_property_link as string) || undefined,
+      external_property_location: (external_property_location as string) || undefined,
       guarantor_name: guarantor_name as string,
       guarantor_phone: guarantor_phone as string,
       guarantor_relationship: guarantor_relationship as string,
@@ -76,6 +81,22 @@ installmentRoutes.post("/application", async (c) => {
     });
 
     const uploadPromises = [];
+
+    // Upload external property images
+    if (is_external_property === "true") {
+      const externalImages = Array.isArray(body["external_property_images"])
+        ? body["external_property_images"]
+        : body["external_property_images"]
+          ? [body["external_property_images"]]
+          : [];
+      for (const img of externalImages) {
+        if (img instanceof File) {
+          uploadPromises.push(
+            uploadFiles(img, { installment_application_id: id })
+          );
+        }
+      }
+    }
 
     if (id_upload) {
       uploadPromises.push(
@@ -190,6 +211,9 @@ installmentRoutes.post("/application", async (c) => {
       employment_length: (employment_length as string) || undefined,
       property_id: (property_id as string) || undefined,
       marketplace_id: (marketplace_id as string) || undefined,
+      is_external_property: is_external_property === "true",
+      external_property_link: (external_property_link as string) || undefined,
+      external_property_location: (external_property_location as string) || undefined,
       guarantor_name: guarantor_name as string,
       guarantor_phone: guarantor_phone as string,
       guarantor_relationship: guarantor_relationship as string,
@@ -202,11 +226,13 @@ installmentRoutes.post("/application", async (c) => {
       to: APPLICATION_EMAIL,
       subject: `New Installment Application - ${full_name}`,
       body: emailHtml,
+    }).catch((error) => {
+      console.error(error);
     });
 
     return c.json({ message: "Application submitted successfully", id });
   } catch (error) {
-    console.error(error);
+    // console.error(error);
     return c.json({ message: "Internal server error" }, 500);
   }
 });
