@@ -36,7 +36,6 @@ interface ApplicationEmailData {
   property_id?: string;
   marketplace_id?: string;
   is_external_property: boolean;
-  external_property_link?: string;
   external_property_location?: string;
   guarantor_name: string;
   guarantor_phone: string;
@@ -167,7 +166,6 @@ export const generateApplicationEmail = (data: ApplicationEmailData) => {
             ${
               data.is_external_property
                 ? `
-            <div class="row"><span class="label">Property Link:</span> <span class="value"><a href="${data.external_property_link}" target="_blank" rel="noopener">${data.external_property_link}</a></span></div>
             ${data.external_property_location ? `<div class="row"><span class="label">Location:</span> <span class="value">${data.external_property_location}</span></div>` : ""}
             `
                 : `
@@ -233,4 +231,3 @@ export const generateApplicationEmail = (data: ApplicationEmailData) => {
     </html>
   `;
 };
-
