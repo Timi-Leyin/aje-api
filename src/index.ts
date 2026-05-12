@@ -31,7 +31,7 @@ app.use(logger());
 app.get("/", (c) => {
   return c.json({
     ios: "v3.0.0(44)",
-    android: "v3.0.0(49)",
+    android: "v3.0.0(48)",
   });
 });
 
