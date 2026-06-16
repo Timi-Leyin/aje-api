@@ -5,7 +5,7 @@ import { nanoid } from "nanoid";
 import { db } from "../../db";
 import { files, product } from "../../db/schema";
 import { deleteFile, uploadFiles } from "../../helpers/files";
-import { MAX_LIMIT_DATA } from "../../constants";
+import { MAX_LIMIT_DATA, SUBSCRIPTION_CHECK_ENABLED } from "../../constants";
 import { and, desc, eq, gte, like, lte, or, sql } from "drizzle-orm";
 import { getActiveSubscription } from "../../helpers/subscription";
 import {
@@ -131,6 +131,11 @@ marketplaceRoutes.get("/product", async (c) => {
     const filteredProducts = [];
     for (const prod of products) {
       if (!prod.user) continue;
+      // TEMPORARY: subscription gating disabled — show all products.
+      if (!SUBSCRIPTION_CHECK_ENABLED) {
+        filteredProducts.push(prod);
+        continue;
+      }
       const ownerType = prod.user.user_type;
       if (ownerType === "buyer" || ownerType === "admin") {
         filteredProducts.push(prod);

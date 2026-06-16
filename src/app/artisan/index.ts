@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { Variables } from "../..";
-import { MAX_LIMIT_DATA } from "../../constants";
+import { MAX_LIMIT_DATA, SUBSCRIPTION_CHECK_ENABLED } from "../../constants";
 import { and, eq, like, or, sql } from "drizzle-orm";
 import { users } from "../../db/schema";
 import { db } from "../../db";
@@ -75,6 +75,11 @@ artisanRoutes.get("/", async (c) => {
     // Filter artisans by active subscription (including free trials)
     const filteredArtisans = [];
     for (const artisan of artisans) {
+      // TEMPORARY: subscription gating disabled — show all artisans.
+      if (!SUBSCRIPTION_CHECK_ENABLED) {
+        filteredArtisans.push(artisan);
+        continue;
+      }
       const sub = await getActiveSubscription(artisan.id);
       if (sub && sub.active && !sub.expired && sub.status === "success") {
         filteredArtisans.push(artisan);
